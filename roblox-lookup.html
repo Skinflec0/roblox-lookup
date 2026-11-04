@@ -1,0 +1,3682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Roblox Lookup: Profile, Groups, Games and Assets</title>
+<meta name="description" content="Look up public Roblox users, groups, experiences and catalog items by name or ID. Includes bulk lookup, user comparison and a random ID generator.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2316181d'/%3E%3Ccircle cx='14' cy='14' r='6.5' fill='none' stroke='%234d7fb3' stroke-width='2.5'/%3E%3Cline x1='18.5' y1='18.5' x2='24' y2='24' stroke='%234d7fb3' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+:root {
+  --bg-1: #0f1115;
+  --bg-2: #16181d;
+  --card: #16181d;
+  --border: #262a31;
+  --border-strong: #363b44;
+  --inset: #1c1f25;
+  --inset-deep: #1a1c22;
+  --text: #e6e8eb;
+  --text-dim: #8b919c;
+  --text-soft: #b8bdc6;
+  --accent: #4d7fb3;
+  --accent-hover: #5c8fc4;
+  --accent-glow: rgba(77, 127, 179, 0.22);
+  --accent-wash: rgba(77, 127, 179, 0.12);
+  --success: #4a9d6b;
+  --warning: #c99a2e;
+  --danger: #c05a56;
+  --info: #5a9bc4;
+  --shadow-lg: 0 10px 30px -18px rgba(0, 0, 0, 0.6);
+  --skel-1: #1a1d23;
+  --skel-2: #23272e;
+  --img-bg: #0c0d10;
+}
+html[data-theme="light"] {
+  --bg-1: #f4f5f7;
+  --bg-2: #ffffff;
+  --card: #ffffff;
+  --border: #dfe2e7;
+  --border-strong: #c5cad2;
+  --inset: #f2f4f7;
+  --inset-deep: #eef1f4;
+  --text: #1a1d21;
+  --text-dim: #6b7280;
+  --text-soft: #3f444c;
+  --accent: #2a5b85;
+  --accent-hover: #1e456b;
+  --accent-glow: rgba(42, 91, 133, 0.18);
+  --accent-wash: rgba(42, 91, 133, 0.08);
+  --success: #2e7d4f;
+  --warning: #8a6100;
+  --danger: #a83232;
+  --info: #2a6b9c;
+  --shadow-lg: 0 8px 24px -16px rgba(20, 26, 40, 0.25);
+  --skel-1: #eceef1;
+  --skel-2: #f6f7f9;
+  --img-bg: #eceef1;
+}
+* { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; }
+body {
+  background: var(--bg-1);
+  color: var(--text);
+  min-height: 100vh;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(32px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+.app {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 1100px;
+  padding: 24px 24px 18px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.topbar { display: flex; align-items: flex-start; gap: 12px; }
+.brand { text-align: center; flex: 1; }
+.brand h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.brand p { color: var(--text-dim); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+.icon-btn {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.icon-btn.busy { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.55; } }
+
+.search-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+  background: var(--inset-deep);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+}
+.search-bar.sticky {
+  position: sticky;
+  top: 8px;
+  z-index: 30;
+  background: var(--bg-2);
+  border-color: var(--border-strong);
+}
+.search-bar select, .search-bar input {
+  padding: 11px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+.search-bar select { min-width: 118px; cursor: pointer; }
+.search-bar select option { background: var(--bg-2); color: var(--text); }
+.search-bar input { flex: 1; min-width: 140px; }
+.search-bar button {
+  padding: 0 16px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.search-bar button:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.search-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+.search-bar button.secondary {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.search-bar button.secondary:hover { background: var(--inset-deep); border-color: var(--border-strong); }
+.kbd {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: var(--text-dim);
+  background: var(--inset);
+}
+
+.suggest {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.suggest.open { display: block; }
+.suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+}
+.suggest-item:last-child { border-bottom: none; }
+.suggest-item:hover, .suggest-item.sel { background: var(--accent-wash); }
+.suggest-item img { width: 28px; height: 28px; border-radius: 4px; background: var(--img-bg); object-fit: cover; }
+.suggest-item .s-sub { color: var(--text-dim); font-size: 11.5px; margin-left: auto; }
+
+.loader { display: none; text-align: center; padding: 48px 20px; flex-direction: column; align-items: center; gap: 14px; }
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader span { color: var(--text-dim); font-size: 13.5px; }
+.progress {
+  width: min(320px, 80%);
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--border);
+}
+.progress i { display: block; height: 100%; width: 12%; background: var(--accent); transition: width 0.3s ease; }
+
+.error {
+  background: var(--inset);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--danger);
+  color: var(--text);
+  padding: 14px 16px;
+  border-radius: 6px;
+  text-align: left;
+  display: none;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.error b { display: block; margin-bottom: 4px; font-size: 14px; color: var(--danger); }
+.error .fix { color: var(--text-dim); font-size: 12.5px; margin-top: 6px; }
+
+.banner {
+  display: none;
+  align-items: center;
+  gap: 20px;
+  background: var(--inset);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.avatars { display: flex; gap: 10px; flex-shrink: 0; }
+.avatars img {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--img-bg);
+  object-fit: cover;
+}
+.avatars .body { width: 92px; object-fit: contain; }
+.info { flex: 1; min-width: 0; }
+.info h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.info .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 2px; word-break: break-all; }
+.verified { color: var(--info); display: inline-flex; align-items: center; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 10px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.badge.small { margin-top: 0; margin-left: 8px; padding: 3px 8px; font-size: 10.5px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.offline { background: #71717a; color: #71717a; }
+.online { background: var(--success); color: var(--success); }
+.ingame { background: var(--info); color: var(--info); }
+.studio { background: var(--warning); color: var(--warning); }
+.banned { background: var(--danger); color: var(--danger); }
+.premium { background: var(--warning); color: var(--warning); }
+
+.links { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.link {
+  padding: 6px 11px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.link:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.link.on { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  padding-bottom: 1px;
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: var(--card);
+  scrollbar-width: thin;
+}
+.tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 0;
+  position: relative;
+  transition: color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); }
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: var(--accent);
+}
+.tab .count {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  margin-left: 5px;
+}
+
+.panel { display: none; padding: 20px 0 6px; }
+.panel.active { display: block; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.card {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+.card:hover { border-color: var(--accent); background: var(--accent-wash); }
+.card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: var(--img-bg);
+}
+.card h4 {
+  margin: 0 0 3px;
+  font-size: 12.5px;
+  font-weight: 700;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card p { margin: 0; font-size: 11.5px; color: var(--text-dim); }
+.card .rank {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.card.watch-on { border-color: var(--accent); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--inset);
+  border: 1px solid var(--border);
+  padding: 14px 10px;
+  border-radius: 6px;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+.stat:hover { border-color: var(--border-strong); }
+.stat h3 { margin: 0 0 3px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.stat span {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+.box {
+  background: var(--inset);
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+.box strong {
+  color: var(--text);
+  font-size: 13px;
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.row:last-child { border-bottom: none; }
+.lbl { color: var(--text-dim); }
+.val { font-weight: 600; text-align: right; max-width: 62%; word-break: break-word; color: var(--text); }
+.val.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; }
+.list-item { padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.list-item:last-child { border-bottom: none; }
+.bar-track { height: 8px; border-radius: 3px; background: var(--border); overflow: hidden; display: flex; margin: 8px 0 4px; }
+.bar-track i { display: block; height: 100%; }
+
+.empty { grid-column: 1 / -1; color: var(--text-dim); text-align: center; padding: 16px; font-size: 13.5px; line-height: 1.6; }
+.subload { text-align: center; color: var(--text-dim); padding: 24px; font-size: 13.5px; }
+.media { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.media img {
+  height: 100px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--img-bg);
+  cursor: zoom-in;
+}
+.note { text-align: center; color: var(--text-dim); font-size: 11px; margin-top: 4px; }
+.hint { font-size: 12px; color: var(--text-dim); margin-top: 6px; text-align: center; grid-column: 1/-1; }
+.more-btn {
+  grid-column: 1/-1;
+  margin-top: 10px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.more-btn:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.more-btn[disabled] { opacity: 0.55; cursor: default; }
+.asset-hero {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+}
+.asset-hero img {
+  width: 180px;
+  height: 180px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--img-bg);
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+}
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.social-link:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.social-link span.tag { color: var(--text-dim); font-weight: 500; font-size: 11.5px; }
+
+.img-skel {
+  background: linear-gradient(100deg, var(--skel-1) 30%, var(--skel-2) 45%, var(--skel-1) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.recent { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.recent:empty { display: none; }
+.recent .label { color: var(--text-dim); font-size: 11.5px; align-self: center; margin-right: 2px; }
+.chip {
+  padding: 5px 10px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 11.5px;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.chip:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.chip b { color: var(--text); font-weight: 600; }
+.chip .chip-type { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+.chip.clear { margin-left: auto; opacity: 0.85; }
+
+.toast {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 60;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(92vw, 480px);
+  text-align: left;
+}
+.toast.show { opacity: 1; }
+.toast::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.toast.warn::before { background: var(--warning); }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 8, 0.9);
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  cursor: zoom-out;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+
+.spark { width: 100%; height: 90px; display: block; cursor: crosshair; }
+.spark .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.spark .fill { fill: var(--accent-glow); opacity: 0.45; }
+.spark .axis { stroke: var(--border); stroke-width: 1; }
+.spark .crosshair { stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 3 2; opacity: 0.7; }
+.spark .pt { fill: var(--accent); stroke: var(--bg-2); stroke-width: 2; }
+.spark-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.spark-tooltip {
+  position: absolute;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  z-index: 5;
+}
+.spark-wrap { position: relative; }
+
+.capture-mode .tabs, .capture-mode .more-btn { box-shadow: none; }
+.grid > .subload { grid-column: 1 / -1; }
+
+@media (max-width: 720px) {
+  .split { grid-template-columns: 1fr; }
+  .banner { flex-direction: column; text-align: center; }
+  .avatars { justify-content: center; }
+  .links { justify-content: center; }
+  .info h2 { justify-content: center; }
+  .app { padding: 18px 14px 16px; }
+  .asset-hero { justify-content: center; text-align: center; }
+  .topbar { align-items: center; }
+  .brand h1 { font-size: 19px; }
+  .brand p { font-size: 12.5px; }
+  .icon-btn { width: 38px; height: 38px; }
+  .tab { padding: 12px 12px; }
+  .search-bar input, .search-bar select, .search-bar button { font-size: 15px; }
+}
+
+.err-actions { display: flex; gap: 8px; justify-content: flex-start; flex-wrap: wrap; margin-top: 12px; }
+.top-btn {
+  position: fixed;
+  right: calc(18px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  width: 40px;
+  height: 40px;
+}
+.top-btn.show { opacity: 1; pointer-events: auto; }
+.app.compact .grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 9px; }
+.app.compact .card { padding: 9px; }
+.app.compact .card h4 { font-size: 11.5px; }
+.more-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.more-row .more-btn { grid-column: auto; margin-top: 0; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+.seg button {
+  background: var(--inset);
+  border: none;
+  color: var(--text-dim);
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--accent); color: #fff; }
+.row-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.stat.clickable { cursor: pointer; }
+.stat.clickable:hover { border-color: var(--accent); }
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  display: block;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.net-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.net-pill .ind { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+.net-pill.slow .ind { background: var(--warning); }
+.net-pill.dead .ind { background: var(--danger); }
+
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 8, 0.78);
+  z-index: 70;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-back.open { display: flex; }
+.modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 22px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 86vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+.modal p.sub { color: var(--text-dim); font-size: 12.5px; margin-bottom: 14px; }
+.modal .kbd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.modal .kbd-row:last-child { border-bottom: none; }
+.modal .kbd-row .keys { display: flex; gap: 4px; }
+.modal .legal-body { font-size: 13.5px; line-height: 1.65; color: var(--text-soft); }
+.modal .legal-body h4 { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 18px 0 6px; }
+.modal .legal-body h4:first-child { margin-top: 0; }
+.modal .legal-body p { margin-bottom: 10px; }
+.modal .legal-body ul { margin: 0 0 10px 18px; }
+.modal .legal-body li { margin-bottom: 4px; }
+.modal .legal-body code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.watch-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.watch-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background: var(--inset);
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.watch-item:hover { border-color: var(--border-strong); background: var(--inset-deep); }
+.watch-item img { width: 20px; height: 20px; border-radius: 3px; object-fit: cover; }
+.watch-item .watch-type { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+.watch-item .x { color: var(--text-dim); font-size: 14px; line-height: 1; padding: 0 2px; }
+.watch-item .x:hover { color: var(--danger); }
+
+.bulk-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.bulk-table th, .bulk-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.bulk-table th { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; }
+.bulk-table tr:hover td { background: var(--inset); }
+.bulk-table img { width: 26px; height: 26px; border-radius: 3px; object-fit: cover; background: var(--img-bg); }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 720px) { .compare-grid { grid-template-columns: 1fr; } }
+.compare-side { background: var(--inset); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+.compare-side h4 { margin: 0 0 8px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.compare-side img.av { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: var(--img-bg); }
+.compare-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 10px; }
+.compare-row:last-child { border-bottom: none; }
+.compare-row .v { font-weight: 700; flex: 1; }
+.compare-row .v:last-child { text-align: right; }
+.compare-row .lbl { text-align: center; flex: 0 0 auto; }
+.compare-row.win .v:first-child { color: var(--success); }
+.compare-row.lose .v:first-child { color: var(--text-dim); }
+.compare-row.win .v:last-child { color: var(--text-dim); }
+.compare-row.lose .v:last-child { color: var(--success); }
+.compare-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mini-note { font-size: 11.5px; color: var(--text-dim); }
+
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.site-footer nav { display: flex; gap: 16px; }
+.foot-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 11.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  font-family: inherit;
+}
+.foot-link:hover { color: var(--text); text-decoration-color: var(--text-dim); }
+
+@media print {
+  body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+  .topbar, .search-bar, .tabs, .links, .more-btn, .top-btn, .toast, .lightbox, .modal-back,
+  .recent, .note, .err-actions, #settings, #loader, .site-footer { display: none !important; }
+  .app { box-shadow: none; border: none; max-width: 100%; padding: 0; background: #fff; }
+  .card { border: 1px solid #ccc !important; background: #fff !important; }
+  .box, .stat, .banner, .asset-hero { background: #fff !important; border: 1px solid #ccc !important; }
+  .panel { display: block !important; page-break-inside: avoid; }
+  .panel:not(.active) { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <button class="icon-btn" id="themeBtn" title="Cycle theme (T)" aria-label="Switch theme" onclick="toggleTheme()"></button>
+    <div class="brand">
+      <h1>Roblox Lookup</h1>
+      <p>Search public Roblox profiles, groups, experiences and catalog items by name or ID.</p>
+    </div>
+    <button class="icon-btn" title="Keyboard shortcuts (?)" aria-label="Help" onclick="openHelp()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
+    <button class="icon-btn" title="Settings" aria-label="Settings" onclick="toggleSettings()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+
+  <div class="search-bar" id="searchBar">
+    <select id="type" onchange="onTypeChange()" aria-label="Search type">
+      <option value="user">User</option>
+      <option value="group">Group</option>
+      <option value="game">Game</option>
+      <option value="asset">Asset</option>
+      <option value="bulk">Bulk users</option>
+      <option value="compare">Compare users</option>
+    </select>
+    <input id="q" type="text" placeholder="Name or ID" autofocus autocomplete="off" spellcheck="false"
+           oninput="onTypeAhead()" onkeydown="onKeyNav(event)" onblur="setTimeout(closeSuggest,150)">
+    <button onclick="go()" id="searchBtn">Search</button>
+    <button class="secondary" id="rngBtn" onclick="rollRandom()">Random</button>
+    <div id="suggest" class="suggest" role="listbox"></div>
+  </div>
+
+  <div id="settings" class="box" style="display:none">
+    <strong>Settings</strong>
+    <div class="row">
+      <span class="lbl">Proxy host</span>
+      <span class="val">
+        <select id="proxySel" onchange="setProxy(this.value)" style="background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:12.5px">
+          <option value="ff-roproxy.com">ff-roproxy.com</option>
+          <option value="roproxy.com">roproxy.com (often unavailable)</option>
+          <option value="roblox.com">roblox.com (direct, CORS-limited)</option>
+        </select>
+      </span>
+    </div>
+    <div class="row"><span class="lbl">Theme</span><span class="val">
+      <span class="seg" id="themeSeg">
+        <button data-t="dark" onclick="setTheme('dark')">Dark</button>
+        <button data-t="light" onclick="setTheme('light')">Light</button>
+        <button data-t="auto" onclick="setTheme('auto')">Auto</button>
+      </span>
+    </span></div>
+    <div class="row"><span class="lbl">Cache responses this session</span><span class="val"><input type="checkbox" id="cacheChk" checked onchange="CACHE_ON=this.checked"></span></div>
+    <div class="row"><span class="lbl">Remember recent searches</span><span class="val"><input type="checkbox" id="persistChk" checked onchange="setPersist(this.checked)"></span></div>
+    <div class="row"><span class="lbl">Auto-load lazy tabs (followers, members)</span><span class="val"><input type="checkbox" id="autoChk" onchange="AUTOLOAD=this.checked;store('autoload',AUTOLOAD)"></span></div>
+    <div class="row"><span class="lbl">Compact grid</span><span class="val"><input type="checkbox" id="compactChk" onchange="setCompact(this.checked)"></span></div>
+    <div class="row"><span class="lbl">Sticky search bar</span><span class="val"><input type="checkbox" id="stickyChk" onchange="setStickySearch(this.checked)"></span></div>
+    <div class="row"><span class="lbl">Live presence refresh (30s)</span><span class="val"><input type="checkbox" id="presenceChk" onchange="setPresenceRefresh(this.checked)"></span></div>
+    <div class="row"><span class="lbl">Concurrent request limit</span><span class="val">
+      <input type="number" id="concurInp" min="2" max="20" value="6"
+        onchange="requestQueue.maxConcurrent=Math.max(2,Math.min(20,+this.value||8));store('concurrency',requestQueue.maxConcurrent)"
+        style="width:60px;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:4px 8px;text-align:right">
+    </span></div>
+    <div class="row"><span class="lbl">Network</span><span class="val"><span id="netPill" class="net-pill"><span class="ind"></span><span id="netText">online</span></span></span></div>
+    <div class="row"><span class="lbl">Shortcuts</span><span class="val"><span class="kbd">/</span> search · <span class="kbd">R</span> random · <span class="kbd">1-6</span> type · <span class="kbd">T</span> theme · <span class="kbd">?</span> help · <span class="kbd">Esc</span> close</span></div>
+    <div class="row"><span class="lbl">Clear cached responses</span><span class="val"><button class="link" onclick="clearCache()">Clear cache</button></span></div>
+    <div class="row"><span class="lbl">Clear all local data</span><span class="val"><button class="link" onclick="wipeLocal()">Wipe storage</button></span></div>
+  </div>
+
+  <div id="watchWrap" style="display:none">
+    <strong class="section-title">Watchlist</strong>
+    <div id="watchList" class="watch-list"></div>
+  </div>
+
+  <div id="recent" class="recent"></div>
+
+  <div id="err" class="error"></div>
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <span id="loadMsg">Loading data</span>
+    <div class="progress"><i id="bar"></i></div>
+  </div>
+
+  <div id="out" style="display:none;flex-direction:column;gap:0">
+    <div id="banner" class="banner">
+      <div class="avatars">
+        <img id="head" alt="" style="visibility:hidden">
+        <img id="body" class="body" alt="" style="display:none;visibility:hidden">
+      </div>
+      <div class="info">
+        <h2 id="title">&nbsp;</h2>
+        <p class="sub" id="sub">&nbsp;</p>
+        <div id="statusWrap" style="display:none">
+          <div class="badge">
+            <div id="dot" class="dot offline"></div>
+            <span id="statusText">Offline</span>
+          </div>
+          <span id="premiumBadge"></span>
+        </div>
+        <div id="links" class="links"></div>
+      </div>
+    </div>
+    <div id="tabs" class="tabs"></div>
+    <div id="panels"></div>
+  </div>
+
+  <footer class="site-footer">
+    <span>Public data via Roblox APIs. Not affiliated with Roblox Corporation. Privacy settings may hide some lists.</span>
+    <nav>
+      <button class="foot-link" onclick="openLegal('terms')">Terms of Use</button>
+      <button class="foot-link" onclick="openLegal('privacy')">Privacy Policy</button>
+    </nav>
+  </footer>
+</div>
+
+<button class="icon-btn top-btn" id="topBtn" title="Back to top" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<div id="toast" class="toast"></div>
+<div id="lightbox" class="lightbox" onclick="closeLightbox()"><img id="lbImg" alt=""></div>
+
+<div class="modal-back" id="helpModal" onclick="if(event.target===this)closeHelp()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <h3>Keyboard shortcuts</h3>
+    <p class="sub">Ways to drive the lookup tool without touching the mouse.</p>
+    <div class="kbd-row"><span>Focus search</span><span class="keys"><span class="kbd">/</span><span class="kbd">Ctrl</span><span class="kbd">K</span></span></div>
+    <div class="kbd-row"><span>Run search</span><span class="keys"><span class="kbd">Enter</span></span></div>
+    <div class="kbd-row"><span>Random roll</span><span class="keys"><span class="kbd">R</span></span></div>
+    <div class="kbd-row"><span>Switch type</span><span class="keys"><span class="kbd">1</span><span class="kbd">-</span><span class="kbd">6</span></span></div>
+    <div class="kbd-row"><span>Cycle theme</span><span class="keys"><span class="kbd">T</span></span></div>
+    <div class="kbd-row"><span>Close dialogs</span><span class="keys"><span class="kbd">Esc</span></span></div>
+    <div class="kbd-row"><span>This help</span><span class="keys"><span class="kbd">?</span></span></div>
+    <div class="kbd-row"><span>Navigate suggestions</span><span class="keys"><span class="kbd">Up</span><span class="kbd">Down</span></span></div>
+    <div class="row-actions" style="justify-content:flex-end;margin-top:14px">
+      <button class="link" onclick="closeHelp()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="legalModal" onclick="if(event.target===this)closeLegal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Legal">
+    <div id="legalContent"></div>
+    <div class="row-actions" style="justify-content:flex-end;margin-top:16px">
+      <button class="link" onclick="closeLegal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ICONS
+   ============================================================ */
+const SVG = {
+  moon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
+  star: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="vertical-align:-1px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  starFill: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="vertical-align:-1px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  check: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg>'
+};
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+let P = 'ff-roproxy.com';
+let CACHE_ON = true;
+let PERSIST = true;
+let AUTOLOAD = false;
+let COMPACT = false;
+let PRESENCE_ON = true;
+let STICKY_SEARCH = true;
+const H2C = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+const REQ_TIMEOUT = 14000;
+const PROXY_FALLBACKS = ['ff-roproxy.com', 'roproxy.com'];
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+/* ============================================================
+   SMALL HELPERS
+   ============================================================ */
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const attr = s => esc(s);
+const num = n => {
+  if (n == null || isNaN(n)) return '0';
+  n = Number(n);
+  if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString();
+};
+const exact = n => (n == null || isNaN(n)) ? '0' : Number(n).toLocaleString();
+const date = d => {
+  if (!d) return 'Unknown';
+  const t = new Date(d);
+  return isNaN(t) ? 'Unknown' : t.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+};
+const when = d => {
+  if (!d) return 'Unknown';
+  const t = new Date(d);
+  return isNaN(t) ? 'Unknown' : t.toLocaleString();
+};
+const ago = d => {
+  if (!d) return '';
+  const t = new Date(d); if (isNaN(t)) return '';
+  const s = (Date.now() - t.getTime()) / 1000;
+  if (s < 60) return 'just now';
+  const units = [['y',31557600],['mo',2629800],['d',86400],['h',3600],['m',60]];
+  for (const [u,secs] of units) { if (s >= secs) return Math.floor(s/secs) + u + ' ago'; }
+  return 'just now';
+};
+const isId = s => /^\d+$/.test(String(s).trim());
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const splitIds = str => String(str || '').split(/[\s,;]+/).filter(Boolean);
+
+/* ============================================================
+   INPUT PARSING
+   ============================================================ */
+const URL_PATTERNS = [
+  { re: /roblox\.com\/users\/(\d+)/i,        type: 'user'  },
+  { re: /roblox\.com\/user\/(\d+)/i,         type: 'user'  },
+  { re: /rolimons\.com\/player\/(\d+)/i,     type: 'user'  },
+  { re: /roblox\.com\/groups\/(\d+)/i,       type: 'group' },
+  { re: /roblox\.com\/games\/(\d+)/i,        type: 'game'  },
+  { re: /roblox\.com\/game\/(\d+)/i,         type: 'game'  },
+  { re: /roblox\.com\/catalog\/(\d+)/i,      type: 'asset' },
+  { re: /roblox\.com\/library\/(\d+)/i,      type: 'asset' },
+  { re: /roblox\.com\/game-pass\/(\d+)/i,    type: 'asset' },
+  { re: /roblox\.com\/bundles\/(\d+)/i,      type: 'asset' },
+  { re: /roblox\.com\/outfits\/(\d+)/i,      type: 'asset' },
+  { re: /rolimons\.com\/item\/(\d+)/i,       type: 'asset' }
+];
+function parseInput(raw) {
+  const s = String(raw || '').trim();
+  if (!s || isId(s)) return null;
+  for (const p of URL_PATTERNS) {
+    const m = p.re.exec(s);
+    if (m) return { type: p.type, id: m[1] };
+  }
+  return null;
+}
+
+/* ============================================================
+   REQUEST QUEUE
+   ============================================================ */
+const requestQueue = {
+  maxConcurrent: 8,
+  active: 0,
+  queue: [],
+  async run(fn) {
+    if (this.active >= this.maxConcurrent) {
+      await new Promise(resolve => this.queue.push(resolve));
+    }
+    this.active++;
+    try { return await fn(); }
+    finally {
+      this.active--;
+      const next = this.queue.shift();
+      if (next) next();
+    }
+  }
+};
+const netHealth = { state: 'online', lastErrorAt: 0, lastSuccessAt: Date.now() };
+function paintNetPill() {
+  const pill = document.getElementById('netPill');
+  const txt = document.getElementById('netText');
+  if (!pill || !txt) return;
+  pill.classList.toggle('slow', netHealth.state === 'slow');
+  pill.classList.toggle('dead', netHealth.state === 'dead');
+  txt.textContent = netHealth.state;
+}
+function noteNet(ok, slow) {
+  if (ok) { netHealth.state = 'online'; netHealth.lastSuccessAt = Date.now(); }
+  else {
+    netHealth.lastErrorAt = Date.now();
+    netHealth.state = slow ? 'slow' : 'dead';
+  }
+  paintNetPill();
+}
+
+/* ============================================================
+   NETWORK
+   ============================================================ */
+const cache = new Map();
+const state = { gen: 0, abort: new AbortController(), last: null, kind: null, id: null, placeId: null };
+
+function newGeneration() {
+  try { state.abort.abort(); } catch {}
+  state.abort = new AbortController();
+  return ++state.gen;
+}
+const alive = g => g === state.gen;
+
+async function rawFetch(url, init = {}) {
+  const timer = new AbortController();
+  const to = setTimeout(() => timer.abort(), REQ_TIMEOUT);
+  const onAbort = () => timer.abort();
+  state.abort.signal.addEventListener('abort', onAbort);
+  try {
+    return await requestQueue.run(() => fetch(url, { ...init, signal: timer.signal, cache: 'default' }));
+  } finally {
+    clearTimeout(to);
+    state.abort.signal.removeEventListener('abort', onAbort);
+  }
+}
+
+const lastHttp = { status: 0, url: '' };
+const deadHosts = new Set();
+async function get(url, opts = {}) {
+  if (CACHE_ON && !opts.fresh && cache.has(url)) {
+    const entry = cache.get(url);
+    if (entry && (Date.now() - entry.t) < CACHE_TTL_MS) return entry.v;
+  }
+  for (let attemptNo = 0; attemptNo < 5; attemptNo++) {
+    try {
+      lastHttp.url = url;
+      const r = await rawFetch(url);
+      lastHttp.status = r.status;
+      if (r.status === 429) {
+        noteNet(false, true);
+        await sleep(Math.min(12000, 1200 * Math.pow(1.8, attemptNo)));
+        continue;
+      }
+      if (!r.ok) {
+        if (r.status >= 500 && attemptNo < 2) { await sleep(400); continue; }
+        noteNet(false, false); return null;
+      }
+      const j = await r.json();
+      if (CACHE_ON) cache.set(url, { v: j, t: Date.now() });
+      noteNet(true);
+      return j;
+    } catch (e) {
+      if (state.abort.signal.aborted) return null;
+      lastHttp.status = 0;
+      if (attemptNo >= 2) { noteNet(false, false); return null; }
+      await sleep(350);
+    }
+  }
+  return null;
+}
+const post = async (url, body) => {
+  try {
+    const r = await rawFetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) { noteNet(false, r.status === 429); return null; }
+    noteNet(true);
+    return r.json();
+  } catch { noteNet(false, false); return null; }
+};
+function clearCache() { cache.clear(); toast('Cache cleared'); }
+function setProxy(host) {
+  P = host;
+  cache.clear();
+  store('proxy', host);
+  toast('Now using ' + host);
+}
+async function getWithHostFallback(pathAndQuery, opts = {}) {
+  const first = await get(`https://${pathAndQuery.replace('{P}', P)}`, opts);
+  if (first != null) return first;
+  for (const host of PROXY_FALLBACKS) {
+    if (host === P || deadHosts.has(host)) continue;
+    if (state.abort.signal.aborted) return null;
+    const alt = await get(`https://${pathAndQuery.replace('{P}', host)}`, { ...opts, fresh: true });
+    if (alt != null) return alt;
+  }
+  return null;
+}
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+async function getAny(url, opts = {}) {
+  const first = await get(url, opts);
+  if (first != null) return first;
+  const firstStatus = lastHttp.status, firstUrl = lastHttp.url;
+  // A real 4xx answer (not rate limiting) will be identical on other hosts, so don't waste time.
+  if (firstStatus >= 400 && firstStatus < 500 && firstStatus !== 429) return null;
+  for (const host of PROXY_FALLBACKS) {
+    if (host === P || deadHosts.has(host)) continue;
+    if (state.abort.signal.aborted) return null;
+    const alt = await get(url.split('.' + P + '/').join('.' + host + '/'), { ...opts, fresh: true });
+    if (alt != null) return alt;
+    if (lastHttp.status === 0) deadHosts.add(host); // unreachable: skip it for the rest of the session
+  }
+  lastHttp.status = firstStatus; lastHttp.url = firstUrl;
+  return null;
+}
+async function userTiles(data) {
+  if (!data.length) return '';
+  const map = await thumbMap('headshot', data.map(u => u.id ?? u.userId));
+  return data.map(u => {
+    const uid = u.id ?? u.userId;
+    return tile({ href: `https://www.roblox.com/users/${uid}/profile`, img: map[uid], title: u.name || u.displayName || String(uid), sub: u.displayName || '' });
+  }).join('');
+}
+const mem = {};
+function store(k, v) {
+  mem['rl_' + k] = v;
+  if (!PERSIST) return;
+  try { localStorage.setItem('rl_' + k, JSON.stringify(v)); } catch {}
+}
+function load(k, fallback) {
+  try {
+    const raw = localStorage.getItem('rl_' + k);
+    if (raw != null) return JSON.parse(raw);
+  } catch {}
+  return ('rl_' + k) in mem ? mem['rl_' + k] : fallback;
+}
+function setPersist(on) {
+  PERSIST = on;
+  if (!on) { try { Object.keys(localStorage).filter(k=>k.startsWith('rl_')).forEach(k=>localStorage.removeItem(k)); } catch {} }
+  else { store('recent', recentList); store('watchlist', watchlist); store('themeMode', document.documentElement.dataset.themeMode || 'dark'); }
+}
+function wipeLocal() {
+  try { Object.keys(localStorage).filter(k=>k.startsWith('rl_')).forEach(k=>localStorage.removeItem(k)); } catch {}
+  Object.keys(mem).forEach(k => delete mem[k]);
+  recentList = [];
+  watchlist = [];
+  renderRecent();
+  renderWatchlist();
+  toast('Local data wiped');
+}
+
+/* ============================================================
+   TOASTS / COPY / DOWNLOAD / LIGHTBOX
+   ============================================================ */
+let toastTimer;
+function toast(msg, warn) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.toggle('warn', !!warn);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+const copy = t => {
+  const text = String(t);
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard')).catch(() => fallbackCopy(text));
+  } else fallbackCopy(text);
+};
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('Copied to clipboard'); }
+  catch { toast('Copy failed. Select the text manually.', true); }
+  ta.remove();
+}
+function download(name, content, mime) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mime || 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function openLightbox(src) {
+  if (!src) return;
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('[data-lb]');
+  if (el && el.dataset.lb) { e.preventDefault(); openLightbox(el.dataset.lb); }
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('[data-copy]');
+  if (el && el.dataset.copy != null) { e.preventDefault(); copy(el.dataset.copy); }
+});
+
+/* ============================================================
+   IMAGES
+   ============================================================ */
+function setImg(el, src, showDim) {
+  if (!el) return;
+  el.onload = null; el.onerror = null;
+  if (src) {
+    el.classList.add('img-skel');
+    el.style.visibility = 'visible';
+    if (showDim) el.style.display = showDim;
+    el.crossOrigin = 'anonymous';
+    el.onload = () => el.classList.remove('img-skel');
+    el.onerror = () => { el.classList.remove('img-skel'); el.style.visibility = 'hidden'; };
+    el.src = src;
+  } else {
+    el.removeAttribute('src');
+    el.classList.remove('img-skel');
+    el.style.visibility = 'hidden';
+  }
+}
+const fixUrl = u => !u ? '' : u.startsWith('//') ? 'https:' + u : u.startsWith('/') ? 'https://www.roblox.com' + u : u;
+function imgFail(el) {
+  el.classList.remove('img-skel');
+  if (el.crossOrigin && !el.dataset.retried) {
+    el.dataset.retried = '1';
+    const src = el.getAttribute('src');
+    el.removeAttribute('crossorigin');
+    el.setAttribute('src', src);
+    return;
+  }
+  el.style.visibility = 'hidden';
+}
+const imgTag = (src, cls, noCors) =>
+  `<img class="${cls||''} ${src?'img-skel':''}" ${src?`src="${attr(src)}"${noCors?'':' crossorigin="anonymous"'}`:''} alt="" loading="lazy"
+     onload="this.classList.remove('img-skel')" onerror="imgFail(this)">`;
+
+function tile({ href, img, title, sub, sub2, click, data }) {
+  const open = href ? `href="${attr(href)}" target="_blank" rel="noopener"` : 'style="cursor:default"';
+  const tag = href ? 'a' : 'div';
+  const onclick = click ? ` onclick="${esc(click)}"` : '';
+  const dataAttrs = data ? Object.entries(data).map(([k, v]) => ` data-${k}="${attr(v)}"`).join('') : '';
+  const lbAttr = img ? ` data-lb="${attr(img)}"` : '';
+  return `<${tag} class="card" data-name="${attr(title)}"${dataAttrs} ${open}${onclick}${lbAttr}>${imgTag(img)}<h4 title="${attr(title)}">${esc(title)}</h4>` +
+    (sub ? `<p>${esc(sub)}</p>` : '') + (sub2 ? `<p>${esc(sub2)}</p>` : '') + `</${tag}>`;
+}
+function filterStaticGrid(gridId, term, countId) {
+  const host = document.getElementById(gridId);
+  if (!host) return;
+  const needle = term.trim().toLowerCase();
+  let shown = 0, total = 0;
+  host.querySelectorAll('[data-name]').forEach(card => {
+    total++;
+    const hit = !needle || card.dataset.name.toLowerCase().includes(needle);
+    card.style.display = hit ? '' : 'none';
+    if (hit) shown++;
+  });
+  const count = countId && document.getElementById(countId);
+  if (count) count.textContent = needle ? `${shown} of ${total} match` : `${total} total`;
+}
+function sortStaticGrid(gridId, key, dir) {
+  const host = document.getElementById(gridId);
+  if (!host) return;
+  const cards = [...host.querySelectorAll('[data-name]')];
+  const val = c => key === 'name' ? c.dataset.name.toLowerCase() : Number(c.dataset[key] || 0);
+  cards.sort((a, b) => {
+    const av = val(a), bv = val(b);
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  const tail = [...host.children].filter(n => !n.dataset || !n.dataset.name);
+  cards.forEach(c => host.appendChild(c));
+  tail.forEach(n => host.appendChild(n));
+}
+function staticToolbar(gridId, countId, sortOptions) {
+  const opts = (sortOptions || []).map(([label, key, dir]) => `<option value="${key}|${dir}">${esc(label)}</option>`).join('');
+  return `<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" placeholder="Filter by name" oninput="filterStaticGrid('${gridId}',this.value,'${countId}')"
+      style="flex:1;min-width:140px;padding:8px 12px;background:var(--inset);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;outline:none">
+    ${opts ? `<select onchange="const [k,d]=this.value.split('|');sortStaticGrid('${gridId}',k,d)"
+      style="padding:8px 10px;background:var(--inset);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12.5px">${opts}</select>` : ''}
+    <span id="${countId}" style="font-size:11.5px;color:var(--text-dim);white-space:nowrap"></span>
+  </div>`;
+}
+
+/* ============================================================
+   RECENT SEARCHES
+   ============================================================ */
+let recentList = load('recent', []) || [];
+function addRecent(type, q, label) {
+  recentList = recentList.filter(r => !(r.type === type && r.q === q));
+  recentList.unshift({ type, q, label: label || q, at: Date.now() });
+  recentList = recentList.slice(0, 12);
+  store('recent', recentList);
+  renderRecent();
+}
+function renderRecent() {
+  const el = document.getElementById('recent');
+  if (!el) return;
+  if (!recentList.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<span class="label">Recent:</span>' + recentList.map((r, i) =>
+    `<span class="chip" onclick="rerun(${i})" title="${attr(r.type)} ${attr(r.q)}${r.at ? ' ' + ago(r.at) : ''}"><span class="chip-type">${esc(r.type)}</span> <b>${esc(r.label)}</b></span>`
+  ).join('') + '<span class="chip clear" onclick="clearRecent()">Clear</span>';
+}
+function clearRecent() { recentList = []; store('recent', []); renderRecent(); toast('Recent searches cleared'); }
+function rerun(i) {
+  const r = recentList[i];
+  if (!r) return;
+  document.getElementById('type').value = r.type;
+  onTypeChange();
+  document.getElementById('q').value = r.q;
+  go();
+}
+
+/* ============================================================
+   WATCHLIST
+   ============================================================ */
+let watchlist = load('watchlist', []) || [];
+function watchKey(type, id) { return type + ':' + String(id); }
+function isWatched(type, id) { return watchlist.some(w => watchKey(w.type, w.id) === watchKey(type, id)); }
+function toggleWatch(type, id, label, img) {
+  const k = watchKey(type, id);
+  if (watchlist.some(w => watchKey(w.type, w.id) === k)) {
+    watchlist = watchlist.filter(w => watchKey(w.type, w.id) !== k);
+    toast('Removed from watchlist');
+  } else {
+    watchlist.unshift({ type, id, label: label || String(id), img: img || '', at: Date.now() });
+    watchlist = watchlist.slice(0, 40);
+    toast('Added to watchlist');
+  }
+  store('watchlist', watchlist);
+  renderWatchlist();
+  syncWatchButtons();
+}
+function renderWatchlist() {
+  const wrap = document.getElementById('watchWrap');
+  const list = document.getElementById('watchList');
+  if (!wrap || !list) return;
+  if (!watchlist.length) { wrap.style.display = 'none'; list.innerHTML = ''; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = watchlist.map((w, i) => `
+    <span class="watch-item" onclick="watchOpen(${i})">
+      ${w.img ? `<img src="${attr(w.img)}" alt="">` : ''}
+      <span class="watch-type">${esc(w.type)}</span>
+      <span>${esc(w.label)}</span>
+      <span class="x" onclick="event.stopPropagation();watchRemove(${i})">×</span>
+    </span>`).join('');
+}
+function watchRemove(i) {
+  watchlist.splice(i, 1);
+  store('watchlist', watchlist);
+  renderWatchlist();
+  syncWatchButtons();
+}
+function watchOpen(i) {
+  const w = watchlist[i];
+  if (!w) return;
+  document.getElementById('type').value = w.type;
+  onTypeChange();
+  document.getElementById('q').value = w.id;
+  go();
+}
+function syncWatchButtons() {
+  document.querySelectorAll('[data-watch-type]').forEach(btn => {
+    const on = isWatched(btn.dataset.watchType, btn.dataset.watchId);
+    btn.classList.toggle('on', on);
+    btn.innerHTML = on ? SVG.starFill + ' Watching' : SVG.star + ' Watch';
+  });
+}
+
+/* ============================================================
+   LOOKUP TABLES
+   ============================================================ */
+const ASSET_TYPES = {
+  1:'Image',2:'T-Shirt',3:'Audio',4:'Mesh',5:'Lua',8:'Hat',9:'Place',10:'Model',
+  11:'Shirt',12:'Pants',13:'Decal',17:'Head',18:'Face',19:'Gear',24:'Animation',
+  27:'Torso',28:'Right Arm',29:'Left Arm',30:'Left Leg',31:'Right Leg',32:'Package',
+  33:'YouTube Video',34:'Game Pass',35:'App',37:'Code',38:'Plugin',39:'Solid Model',
+  40:'Mesh Part',41:'Hair',42:'Face Accessory',
+  43:'Neck',44:'Shoulder',45:'Front',46:'Back',47:'Waist',48:'Climb Anim',
+  49:'Death Anim',50:'Fall Anim',51:'Idle Anim',52:'Jump Anim',53:'Run Anim',
+  54:'Swim Anim',55:'Walk Anim',56:'Pose Anim',57:'Ear Accessory',58:'Eye Accessory',
+  59:'Localization Table',60:'Pack',61:'Emote',62:'Video',63:'Texture Pack',64:'T-Shirt Acc',
+  65:'Shirt Acc',66:'Pants Acc',67:'Jacket',68:'Sweater',69:'Shorts',70:'Left Shoe',
+  71:'Right Shoe',72:'Dress or Skirt',73:'Eyebrow',74:'Eyelash',75:'Mood',76:'Dynamic Head',
+  78:'Font Family',79:'Font Face',80:'Mesh Hidden Surface Removal'
+};
+
+const ASSET_RANGES = [
+  [1000, 5e6, 0.10],
+  [5e6, 1e8, 0.16],
+  [1e8, 1e9, 0.20],
+  [1e9, 5e9, 0.24],
+  [5e9, 1.2e10, 0.20],
+  [1.2e10, 1.8e10, 0.10]
+];
+function randomAssetId() {
+  let roll = Math.random(), acc = 0;
+  for (const [lo, hi, w] of ASSET_RANGES) {
+    acc += w;
+    if (roll <= acc) return Math.floor(lo + Math.random() * (hi - lo));
+  }
+  return Math.floor(1e9 + Math.random() * 4e9);
+}
+
+/* ============================================================
+   UI PLUMBING
+   ============================================================ */
+function onTypeChange() {
+  const t = document.getElementById('type').value;
+  const rng = document.getElementById('rngBtn');
+  rng.style.display = (t === 'bulk' || t === 'compare') ? 'none' : 'inline-block';
+  rng.textContent =
+    t === 'asset' ? 'Random asset' : t === 'user' ? 'Random user' :
+    t === 'group' ? 'Random group' : 'Popular game';
+  const q = document.getElementById('q');
+  if (t === 'bulk') q.placeholder = 'Multiple usernames or IDs, separated by commas, spaces or newlines';
+  else if (t === 'compare') q.placeholder = 'Two usernames or IDs, e.g. builderman vs John';
+  else if (t === 'asset') q.placeholder = 'Asset ID, keyword, or paste a catalog link';
+  else if (t === 'user') q.placeholder = 'Username, user ID, or paste a profile link';
+  else if (t === 'group') q.placeholder = 'Group name, ID, or paste a group link';
+  else q.placeholder = 'Game name, universe or place ID, or paste a link';
+  closeSuggest();
+}
+function toggleSettings() {
+  const s = document.getElementById('settings');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+}
+function cycleTheme() {
+  const cur = document.documentElement.dataset.theme || 'dark';
+  const next = cur === 'dark' ? 'light' : cur === 'light' ? 'auto' : 'dark';
+  setTheme(next);
+}
+function toggleTheme() { cycleTheme(); }
+function setTheme(t) {
+  if (t === 'auto') {
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(prefersLight ? 'light' : 'dark');
+    document.documentElement.dataset.themeMode = 'auto';
+  } else {
+    applyTheme(t);
+    document.documentElement.dataset.themeMode = t;
+  }
+  store('themeMode', t);
+  const seg = document.getElementById('themeSeg');
+  if (seg) seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+}
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  document.getElementById('themeBtn').innerHTML = t === 'light' ? SVG.sun : SVG.moon;
+}
+function setCompact(on) {
+  COMPACT = on;
+  document.getElementById('app').classList.toggle('compact', on);
+  store('compact', on);
+}
+function setStickySearch(on) {
+  STICKY_SEARCH = on;
+  document.getElementById('searchBar').classList.toggle('sticky', on);
+  store('stickySearch', on);
+}
+function setPresenceRefresh(on) {
+  PRESENCE_ON = on;
+  store('presenceRefresh', on);
+  if (!on) stopPresenceRefresh();
+}
+
+function showErr(title, fix) {
+  const e = document.getElementById('err');
+  e.innerHTML = `<b>${esc(title)}</b>${fix ? `<div class="fix">${esc(fix)}</div>` : ''}
+    <div class="err-actions">
+      <button class="link" onclick="go(true)">Retry</button>
+      <button class="link" onclick="rollRandom()">Random</button>
+      <button class="link" onclick="document.getElementById('settings').style.display='block';document.getElementById('settings').scrollIntoView({behavior:'smooth'})">Proxy settings</button>
+    </div>`;
+  e.style.display = 'block';
+  document.getElementById('loader').style.display = 'none';
+}
+function progress(p, msg) {
+  const bar = document.getElementById('bar');
+  if (bar) bar.style.width = Math.min(100, p) + '%';
+  if (msg) document.getElementById('loadMsg').textContent = msg;
+}
+function reset() {
+  document.getElementById('err').style.display = 'none';
+  document.getElementById('out').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('loadMsg').textContent = 'Loading data';
+  progress(8);
+  document.getElementById('tabs').innerHTML = '';
+  document.getElementById('panels').innerHTML = '';
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('premiumBadge').innerHTML = '';
+  document.getElementById('banner').style.display = 'none';
+  state.placeId = null;
+  clearPagers();
+  stopPresenceRefresh();
+  closeSuggest();
+}
+function showOut() {
+  progress(100);
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('out').style.display = 'flex';
+}
+const PANEL_PAGER = { 'p-fo':'followers', 'p-fg':'following', 'p-mb':'members' };
+function tab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const p = document.getElementById(id);
+  if (p) p.classList.add('active');
+  if (el) el.classList.add('active');
+  const key = PANEL_PAGER[id];
+  if (key && AUTOLOAD && pagers[key] && !pagers[key].done && !pagers[key].items.length) loadPage(key);
+  if (state.kind && state.id != null) {
+    const nice = id.replace(/^p-/, '');
+    if (nice && !ignoreHash) {
+      ignoreHash = true;
+      history.replaceState(null, '', `#${state.kind}/${state.id}/${nice}`);
+      setTimeout(() => { ignoreHash = false; }, 30);
+    }
+  }
+}
+function paint(tabsHTML, panelsHTML) {
+  document.getElementById('tabs').innerHTML = tabsHTML;
+  document.getElementById('panels').innerHTML = panelsHTML;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+async function fetchAllPages(baseUrl, maxPages = 20, useLimit = 50, onPage) {
+  let all = [], cursor = '', pages = 0;
+  const hasLimit = /[?&]limit=/.test(baseUrl);
+  let urlBase = hasLimit ? baseUrl : (baseUrl + (baseUrl.includes('?') ? '&' : '?') + `limit=${useLimit}`);
+
+  while (pages < maxPages) {
+    const url = urlBase + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
+    const res = await getAny(url);
+    if (!res?.data?.length) break;
+    all = all.concat(res.data);
+    if (onPage) onPage(all.length);
+    if (!res.nextPageCursor) break;
+    cursor = res.nextPageCursor;
+    pages++;
+  }
+  return all;
+}
+
+const pagers = {};
+function registerPager(key, cfg) { pagers[key] = { cursor: '', done: false, failed: false, items: [], names: [], ...cfg }; }
+function clearPagers() { Object.keys(pagers).forEach(k => { delete pagers[k]; }); }
+
+async function loadPage(key, silent) {
+  const p = pagers[key];
+  if (!p || p.done || p.loading) return;
+  p.loading = true;
+  try { await loadPageInner(key, silent); } finally { p.loading = false; }
+}
+async function loadPageInner(key, silent) {
+  const p = pagers[key];
+  if (!p || p.done) return;
+  const host = document.getElementById(p.gridId);
+  const btn = document.getElementById(p.btnId);
+  const allBtn = btn && btn.parentElement ? btn.parentElement.querySelector('[data-all]') : null;
+  if (btn && !silent) { btn.disabled = true; btn.textContent = p.failed ? 'Retrying' : 'Loading'; }
+  if (allBtn && !silent) allBtn.disabled = true;
+  if (host && !p.items.length) host.innerHTML = '<div class="subload">Loading</div>';
+  const buildUrl = () => p.url + (p.url.includes('?') ? '&' : '?') + `limit=${p.limit||100}` + (p.cursor ? `&cursor=${encodeURIComponent(p.cursor)}` : '');
+  let res = await getAny(buildUrl(), { fresh: p.failed });
+  if ((res === null || res?.errors) && lastHttp.status === 400 && (p.limit || 100) > 50) {
+    p.limit = 50;
+    res = await getAny(buildUrl(), { fresh: true });
+  }
+  if (res?.errors) res = null;
+  if (res === null && p.altUrl && !p.useAlt) {
+    p.useAlt = true; p.url = p.altUrl; p.cursor = '';
+    res = await getAny(buildUrl(), { fresh: true });
+    if (res?.errors) res = null;
+  }
+  if (res && !(res.data || []).length && !p.items.length && p.altUrl && !p.useAlt) {
+    const orig = p.url;
+    p.useAlt = true; p.url = p.altUrl; p.cursor = '';
+    const r2 = await getAny(buildUrl(), { fresh: true });
+    if (r2 && !r2.errors && (r2.data || []).length) res = r2; else { p.url = orig; p.useAlt = false; }
+  }
+
+  if (res === null) {
+    p.failed = true;
+    const why = lastHttp.status === 429 ? 'Roblox rate limit, wait a few seconds and retry'
+              : lastHttp.status ? 'HTTP ' + lastHttp.status : 'network or proxy error';
+    if (host && !p.items.length) {
+      host.innerHTML = `<p class="empty">Could not load this list (${why}). Try again, or switch the proxy host in settings.<br><small style="opacity:.7;word-break:break-all">${esc(lastHttp.url)}</small></p>`;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = p.items.length ? 'Retry loading more' : 'Retry'; }
+    if (allBtn) allBtn.disabled = false;
+    return;
+  }
+  p.failed = false;
+  let data = res?.data || (Array.isArray(res) ? res : []);
+  if (p.useAlt && p.normalize) data = data.map(p.normalize);
+  p.items = p.items.concat(data);
+  if (p.nameOf) p.names.push(...data.map(p.nameOf));
+  p.cursor = res?.nextPageCursor || '';
+  if (!p.cursor || !data.length) p.done = true;
+  let html = '';
+  try { html = await p.render(data); }
+  catch (e) { html = `<p class="empty">Loaded ${data.length} items but could not draw them (${esc(e.message || e)}).</p>`; }
+  if (host) {
+    if (host.querySelector('.subload')) host.innerHTML = '';
+    host.insertAdjacentHTML('beforeend', html || '');
+    if (!p.items.length) host.innerHTML = `<p class="empty">${esc(p.emptyMsg || 'Nothing here. This list may be private.')}</p>`;
+  }
+  (p.countEls || []).forEach(i => { const el = document.getElementById(i); if (el) el.textContent = p.items.length + (p.done ? '' : '+'); });
+  if (btn) {
+    if (p.done) { btn.remove(); if (allBtn) allBtn.remove(); }
+    else { btn.disabled = false; btn.textContent = `Load 100 more (${p.items.length} so far)`; if (allBtn) allBtn.disabled = false; }
+  }
+  refreshPagerToolbar(key);
+}
+async function loadAllPager(key) {
+  const p = pagers[key];
+  if (!p || p.done) return;
+  const btn = document.getElementById(p.btnId);
+  const allBtn = btn && btn.parentElement ? btn.parentElement.querySelector('[data-all]') : null;
+  if (allBtn) { allBtn.disabled = true; allBtn.textContent = 'Loading all'; }
+  let guard = 0, before = -1;
+  while (!p.done && !p.failed && guard < 80 && p.items.length !== before) {
+    guard++;
+    before = p.items.length;
+    await loadPage(key, true);
+    if (allBtn) allBtn.textContent = `Loading all (${p.items.length})`;
+  }
+  if (allBtn) { allBtn.disabled = false; allBtn.textContent = 'Load all'; }
+  toast(p.failed ? 'Stopped early: network error' : `Loaded ${p.items.length} items`, p.failed);
+}
+function filterPagerGrid(key, term) {
+  const p = pagers[key];
+  if (!p) return;
+  const host = document.getElementById(p.gridId);
+  if (!host) return;
+  const needle = term.trim().toLowerCase();
+  let shown = 0;
+  host.querySelectorAll('[data-name]').forEach(card => {
+    const hit = !needle || card.dataset.name.toLowerCase().includes(needle);
+    card.style.display = hit ? '' : 'none';
+    if (hit) shown++;
+  });
+  const count = document.getElementById(p.countId);
+  if (count) count.textContent = needle ? `${shown} of ${p.items.length} match` : `${p.items.length} loaded`;
+}
+function refreshPagerToolbar(key) {
+  const p = pagers[key];
+  const count = p && document.getElementById(p.countId);
+  if (count && !count.textContent.includes('match')) count.textContent = `${p.items.length} loaded`;
+}
+function exportPagerCSV(key) {
+  const p = pagers[key];
+  if (!p || !p.items.length) { toast('Nothing loaded to export yet', true); return; }
+  const rows = ['name,id'].concat(p.items.map(it => {
+    const nm = (p.nameOf ? p.nameOf(it) : (it.name || it.username || '')).replace(/"/g, '""');
+    const id = it.id ?? it.user?.userId ?? it.owner?.id ?? '';
+    return `"${nm}",${id}`;
+  }));
+  download(`roblox-${key}.csv`, rows.join('\n'), 'text/csv');
+  toast('CSV exported');
+}
+function pagerToolbar(key, countId) {
+  return `<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" placeholder="Filter by name" oninput="filterPagerGrid('${key}',this.value)"
+      style="flex:1;min-width:140px;padding:8px 12px;background:var(--inset);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;outline:none">
+    <span id="${countId}" style="font-size:11.5px;color:var(--text-dim);white-space:nowrap">0 loaded</span>
+    <button class="link" onclick="exportPagerCSV('${key}')">Export CSV</button>
+  </div>`;
+}
+function pagerButtons(key, btnId) {
+  return `<div class="more-row">
+    <button class="more-btn" id="${btnId}" onclick="loadPage('${key}')">Load 100 more</button>
+    <button class="more-btn" data-all onclick="loadAllPager('${key}')">Load all</button>
+  </div>`;
+}
+
+/* ============================================================
+   THUMBNAIL BATCHING
+   ============================================================ */
+function thumbUrl(kind, chunk, size) {
+  if (kind === 'games') return `https://thumbnails.${P}/v1/games/icons?universeIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+  if (kind === 'groups') return `https://thumbnails.${P}/v1/groups/icons?groupIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+  if (kind === 'headshot') return `https://thumbnails.${P}/v1/users/avatar-headshot?userIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+  if (kind === 'badges') return `https://thumbnails.${P}/v1/badges/icons?badgeIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+  if (kind === 'outfits') return `https://thumbnails.${P}/v1/users/outfits?userOutfitIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+  return `https://thumbnails.${P}/v1/assets?assetIds=${chunk}&size=${size||'150x150'}&format=Png&isCircular=false`;
+}
+async function thumbMap(kind, ids, size) {
+  const map = {};
+  const clean = [...new Set(ids.filter(Boolean))];
+  const chunked = list => { const out = []; for (let i = 0; i < list.length; i += 100) out.push(list.slice(i, i + 100).join(',')); return out; };
+  let pending = [];
+  const results = await Promise.all(chunked(clean).map(c => get(thumbUrl(kind, c, size))));
+  results.forEach(th => (th?.data || []).forEach(t => {
+    if (t.state === 'Pending') { pending.push(t.targetId); return; }
+    if (!t.imageUrl) return;
+    if (!('state' in t) || t.state === 'Completed') map[t.targetId] = t.imageUrl;
+  }));
+  for (let round = 0; round < 3 && pending.length; round++) {
+    await sleep(900 + round * 600);
+    const todo = pending; pending = [];
+    const rs = await Promise.all(chunked(todo).map(c => get(thumbUrl(kind, c, size), { fresh: true })));
+    rs.forEach(th => (th?.data || []).forEach(t => {
+      if (t.state === 'Pending') pending.push(t.targetId);
+      else if (t.imageUrl && t.state !== 'Blocked' && t.state !== 'Error') map[t.targetId] = t.imageUrl;
+    }));
+  }
+  return map;
+}
+
+/* ============================================================
+   SPARKLINE
+   ============================================================ */
+let sparkSeq = 0;
+function sparkline(points, valueKey) {
+  const vals = points.map(p => Number(p[valueKey] ?? p.value) || 0);
+  if (vals.length < 2) return '';
+  const w = 600, h = 90, pad = 4;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 1;
+  const x = i => pad + (i / (vals.length - 1)) * (w - pad * 2);
+  const y = v => h - pad - ((v - min) / span) * (h - pad * 2);
+  const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `${line} L${x(vals.length-1).toFixed(1)},${h-pad} L${x(0).toFixed(1)},${h-pad} Z`;
+  const id = 'sp' + (++sparkSeq);
+  const encoded = vals.map(v => v.toFixed(0)).join(',');
+  return `<div class="spark-wrap" data-spark="${id}">
+    <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="History chart"
+      data-vals="${encoded}" data-w="${w}" data-pad="${pad}">
+      <path class="fill" d="${area}"></path><path class="line" d="${line}"></path>
+      <line class="crosshair" x1="0" y1="0" x2="0" y2="${h}" style="display:none"></line>
+      <circle class="pt" r="4" cx="0" cy="0" style="display:none"></circle>
+    </svg>
+    <div class="spark-tooltip" id="tt-${id}"></div>
+    <div class="spark-legend"><span>low ${num(min)}</span><span>${vals.length} points</span><span>high ${num(max)}</span></div>
+  </div>`;
+}
+document.addEventListener('mousemove', e => {
+  const svg = e.target.closest && e.target.closest('svg.spark');
+  if (!svg) return;
+  const wrap = svg.parentElement;
+  if (!wrap) return;
+  const vals = (svg.dataset.vals || '').split(',').map(Number);
+  if (!vals.length) return;
+  const w = Number(svg.dataset.w) || 600;
+  const pad = Number(svg.dataset.pad) || 4;
+  const rect = svg.getBoundingClientRect();
+  const rel = (e.clientX - rect.left) / rect.width;
+  const idx = Math.max(0, Math.min(vals.length - 1, Math.round(rel * (vals.length - 1))));
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || 1;
+  const cx = pad + (idx / (vals.length - 1)) * (w - pad * 2);
+  const cy = (90 - pad) - ((vals[idx] - min) / span) * (90 - pad * 2);
+  const l = svg.querySelector('.crosshair');
+  const c = svg.querySelector('.pt');
+  if (l) { l.setAttribute('x1', cx); l.setAttribute('x2', cx); l.style.display = ''; }
+  if (c) { c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.style.display = ''; }
+  const tt = wrap.querySelector('.spark-tooltip');
+  if (tt) {
+    tt.textContent = `${num(vals[idx])}`;
+    tt.style.left = Math.min(rect.width - 70, Math.max(0, (cx / w) * rect.width - 30)) + 'px';
+    tt.style.top = '-10px';
+    tt.style.opacity = '1';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (!e.target.closest || !e.target.closest('svg.spark')) return;
+  const svg = e.target.closest('svg.spark');
+  const l = svg.querySelector('.crosshair'), c = svg.querySelector('.pt');
+  if (l) l.style.display = 'none';
+  if (c) c.style.display = 'none';
+  const tt = svg.parentElement?.querySelector('.spark-tooltip');
+  if (tt) tt.style.opacity = '0';
+});
+
+/* ============================================================
+   SCREENSHOT + EXPORT
+   ============================================================ */
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('script failed'));
+    document.head.appendChild(s);
+  });
+}
+async function screenshot(what) {
+  const target = document.getElementById(what === 'card' ? 'banner' : 'out');
+  if (!target) return;
+  try {
+    if (!window.html2canvas) { toast('Preparing capture'); await loadScript(H2C); }
+  } catch {
+    toast('Capture requires an internet connection for html2canvas', true);
+    return;
+  }
+  document.body.classList.add('capture-mode');
+  const bg = getComputedStyle(document.body).getPropertyValue('--bg-1').trim() || '#0f1115';
+  try {
+    const canvas = await window.html2canvas(target, {
+      backgroundColor: bg, useCORS: true, allowTaint: false, scale: Math.min(2, window.devicePixelRatio || 1), logging: false
+    });
+    canvas.toBlob(b => {
+      if (!b) { toast('Capture failed', true); return; }
+      const name = `roblox-${state.kind || 'lookup'}-${state.id || Date.now()}.png`;
+      download(name, b);
+      toast('Screenshot saved');
+    }, 'image/png');
+  } catch (e) {
+    toast('Capture blocked by image CORS', true);
+  } finally {
+    document.body.classList.remove('capture-mode');
+  }
+}
+function exportJSON() {
+  if (!state.last) { toast('Search something first', true); return; }
+  download(`roblox-${state.kind}-${state.id}.json`, JSON.stringify(state.last, null, 2), 'application/json');
+  toast('JSON exported');
+}
+function copySummary() {
+  if (!state.last) return;
+  const d = state.last;
+  let lines = [];
+  if (state.kind === 'user') {
+    lines = [
+      `${d.info.displayName} (@${d.info.name}), ID ${d.info.id}`,
+      `Joined ${date(d.info.created)}. Friends ${exact(d.counts.friends)}, followers ${exact(d.counts.followers)}.`,
+      `Limiteds ${exact(d.rap.count)}, estimated RAP ${exact(d.rap.total)}.`,
+      `https://www.roblox.com/users/${d.info.id}/profile`
+    ];
+  } else if (state.kind === 'group') {
+    lines = [`${d.info.name}, group ${d.info.id}`, `Members ${exact(d.info.memberCount)}, owner ${d.info.owner?.username || 'none'}`, `https://www.roblox.com/groups/${d.info.id}/-`];
+  } else if (state.kind === 'game') {
+    lines = [`${d.info.name} by ${d.info.creator?.name}`, `Playing ${exact(d.info.playing)}, visits ${exact(d.info.visits)}, favorites ${exact(d.info.favoritedCount)}`, `https://www.roblox.com/games/${d.info.rootPlaceId}/-`];
+  } else {
+    lines = [`${d.details.Name}, asset ${d.id}`, `${ASSET_TYPES[d.details.AssetTypeId] || 'Asset'} by ${d.details.Creator?.Name}`, `https://www.roblox.com/catalog/${d.id}/-`];
+  }
+  copy(lines.join('\n'));
+}
+function copyMarkdown() {
+  if (!state.last) return;
+  const d = state.last;
+  let md = '';
+  if (state.kind === 'user') {
+    md += `# ${d.info.displayName} (@${d.info.name})\n\n`;
+    md += `- **User ID:** ${d.info.id}\n`;
+    md += `- **Created:** ${date(d.info.created)} (${ago(d.info.created)})\n`;
+    md += `- **Friends:** ${exact(d.counts.friends)}\n`;
+    md += `- **Followers:** ${exact(d.counts.followers)}\n`;
+    md += `- **Following:** ${exact(d.counts.following)}\n`;
+    md += `- **Limiteds:** ${exact(d.rap.count)}\n`;
+    md += `- **Estimated RAP:** ${exact(d.rap.total)}\n\n`;
+    if (d.pastUsernames?.length) md += `**Past usernames:** ${d.pastUsernames.join(', ')}\n\n`;
+    md += `[Profile](https://www.roblox.com/users/${d.info.id}/profile)\n`;
+  } else if (state.kind === 'group') {
+    md += `# ${d.info.name}\n\n`;
+    md += `- **Group ID:** ${d.info.id}\n`;
+    md += `- **Members:** ${exact(d.info.memberCount)}\n`;
+    md += `- **Owner:** ${d.info.owner?.username || 'None'}\n\n`;
+    md += `[Group page](https://www.roblox.com/groups/${d.info.id}/-)\n`;
+  } else if (state.kind === 'game') {
+    md += `# ${d.info.name}\n\n`;
+    md += `- **Universe:** ${d.info.id}\n`;
+    md += `- **Root place:** ${d.info.rootPlaceId}\n`;
+    md += `- **Creator:** ${d.info.creator?.name}\n`;
+    md += `- **Playing:** ${exact(d.info.playing)}\n`;
+    md += `- **Visits:** ${exact(d.info.visits)}\n\n`;
+    md += `[Play](https://www.roblox.com/games/${d.info.rootPlaceId}/-)\n`;
+  } else {
+    md += `# ${d.details.Name}\n\n`;
+    md += `- **Asset ID:** ${d.id}\n`;
+    md += `- **Type:** ${ASSET_TYPES[d.details.AssetTypeId] || d.details.AssetTypeId}\n`;
+    md += `- **Creator:** ${d.details.Creator?.Name}\n`;
+    md += `- **Sales:** ${exact(d.details.Sales)}\n\n`;
+    md += `[Catalog](https://www.roblox.com/catalog/${d.id}/-)\n`;
+  }
+  copy(md);
+}
+function shareLink() {
+  if (!state.kind || state.id == null) { toast('Nothing to share yet', true); return; }
+  const url = location.origin + location.pathname + `#${state.kind}/${state.id}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Roblox Lookup', url }).catch(() => copy(url));
+  } else {
+    copy(url);
+  }
+}
+
+/* ============================================================
+   PRESENCE AUTO-REFRESH
+   ============================================================ */
+let presenceTimer = null;
+function startPresenceRefresh(userId) {
+  stopPresenceRefresh();
+  if (!PRESENCE_ON) return;
+  presenceTimer = setInterval(async () => {
+    if (state.kind !== 'user' || state.id !== userId) { stopPresenceRefresh(); return; }
+    const pr = await post(`https://presence.${P}/v1/presence/users`, { userIds: [userId] });
+    const p = pr?.userPresences?.[0];
+    if (p) updatePresenceBadge(p);
+  }, 30000);
+}
+function stopPresenceRefresh() {
+  if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = null; }
+}
+function updatePresenceBadge(pr) {
+  const dot = document.getElementById('dot');
+  const st = document.getElementById('statusText');
+  if (!dot || !st) return;
+  dot.className = 'dot';
+  const t = pr.userPresenceType;
+  if (t === 1) { dot.classList.add('online'); st.textContent = 'Online'; }
+  else if (t === 2) { dot.classList.add('ingame'); st.textContent = pr.lastLocation || 'In game'; }
+  else if (t === 3) { dot.classList.add('studio'); st.textContent = 'In Studio'; }
+  else { dot.classList.add('offline'); st.textContent = 'Offline'; }
+}
+
+/* ============================================================
+   TYPE-AHEAD SUGGESTIONS
+   ============================================================ */
+let typeTimer, sugIndex = -1, sugItems = [];
+function closeSuggest() {
+  document.getElementById('suggest').classList.remove('open');
+  sugIndex = -1; sugItems = [];
+}
+function onTypeAhead() {
+  clearTimeout(typeTimer);
+  const q = document.getElementById('q').value.trim();
+  const type = document.getElementById('type').value;
+  if (type === 'bulk' || type === 'compare') return closeSuggest();
+  if (q.length < 3 || isId(q) || parseInput(q)) return closeSuggest();
+  typeTimer = setTimeout(() => suggest(q, type), 260);
+}
+async function suggest(q, type) {
+  let items = [];
+  if (type === 'user') {
+    const r = await get(`https://users.${P}/v1/users/search?keyword=${encodeURIComponent(q)}&limit=10`);
+    const data = r?.data || [];
+    const map = data.length ? await thumbMap('headshot', data.map(u => u.id), '48x48') : {};
+    items = data.map(u => ({ q: u.name, label: u.displayName || u.name, sub: '@' + u.name, img: map[u.id] }));
+  } else if (type === 'group') {
+    const r = await get(`https://groups.${P}/v1/groups/search?keyword=${encodeURIComponent(q)}&prioritizeExactMatch=true&limit=10`);
+    const data = r?.data || [];
+    const map = data.length ? await thumbMap('groups', data.map(g => g.id), '48x48') : {};
+    items = data.map(g => ({ q: String(g.id), label: g.name, sub: num(g.memberCount) + ' members', img: map[g.id] }));
+  } else if (type === 'asset') {
+    let r = await get(`https://catalog.${P}/v1/search/items/details?Category=12&Keyword=${encodeURIComponent(q)}&Limit=10`);
+    if (!r?.data?.length) {
+      r = await get(`https://catalog.${P}/v1/search/items/details?Category=1&Keyword=${encodeURIComponent(q)}&Limit=10`);
+    }
+    const data = (r?.data || []).filter(i => i && i.id);
+    const map = data.length ? await thumbMap('assets', data.map(i => i.id), '48x48') : {};
+    items = data.map(i => ({
+      q: String(i.id),
+      label: i.name || ('Asset ' + i.id),
+      sub: ASSET_TYPES[i.assetType] || (i.itemType || 'Asset'),
+      img: map[i.id]
+    }));
+  } else {
+    const r = await get(`https://games.${P}/v1/games/list?keyword=${encodeURIComponent(q)}&limit=10`);
+    const data = r?.data || [];
+    const map = data.length ? await thumbMap('games', data.map(g => g.universeId), '48x48') : {};
+    items = data.map(g => ({ q: String(g.universeId), label: g.name, sub: num(g.playerCount) + ' playing', img: map[g.universeId] }));
+  }
+  const el = document.getElementById('suggest');
+  if (!items.length) return closeSuggest();
+  sugItems = items; sugIndex = -1;
+  el.innerHTML = items.map((it, i) =>
+    `<div class="suggest-item" role="option" data-i="${i}" onmousedown="pickSuggest(${i})">
+       ${it.img ? `<img src="${attr(it.img)}" alt="">` : '<img alt="">'}
+       <span>${esc(it.label)}</span><span class="s-sub">${esc(it.sub)}</span>
+     </div>`).join('');
+  el.classList.add('open');
+}
+function pickSuggest(i) {
+  const it = sugItems[i];
+  if (!it) return;
+  document.getElementById('q').value = it.q;
+  closeSuggest();
+  go();
+}
+function onKeyNav(e) {
+  const open = document.getElementById('suggest').classList.contains('open');
+  if (e.key === 'Enter') { if (open && sugIndex >= 0) { pickSuggest(sugIndex); } else { closeSuggest(); go(); } return; }
+  if (!open) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    sugIndex = (sugIndex + (e.key === 'ArrowDown' ? 1 : -1) + sugItems.length) % sugItems.length;
+    document.querySelectorAll('.suggest-item').forEach(n => n.classList.toggle('sel', Number(n.dataset.i) === sugIndex));
+  }
+  if (e.key === 'Escape') closeSuggest();
+}
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+async function go(skipHash) {
+  let q = document.getElementById('q').value.trim();
+  let type = document.getElementById('type').value;
+
+  const parsed = parseInput(q);
+  if (parsed) {
+    q = parsed.id;
+    type = parsed.type;
+    document.getElementById('type').value = type;
+    document.getElementById('q').value = q;
+    onTypeChange();
+    toast(`Detected ${type} ID ${q} from link`);
+  }
+
+  if (type === 'bulk') return runBulk(q);
+  if (type === 'compare') return runCompare(q);
+
+  if (type === 'asset') {
+    if (!q) return rollAsset();
+    if (!isId(q)) {
+      reset();
+      const g = newGeneration();
+      progress(20, 'Searching the catalog');
+      try {
+        let r = await get(`https://catalog.${P}/v1/search/items/details?Category=12&Keyword=${encodeURIComponent(q)}&Limit=10`);
+        if (!r?.data?.length) r = await get(`https://catalog.${P}/v1/search/items/details?Category=1&Keyword=${encodeURIComponent(q)}&Limit=10`);
+        const hit = (r?.data || []).find(i => i && i.id);
+        if (!hit) throw new Error(`Nothing in the catalog matches "${q}".`);
+        document.getElementById('q').value = String(hit.id);
+        await showAsset(hit.id, null, g);
+        if (!skipHash) setHash('asset', hit.id);
+      } catch (e) {
+        if (alive(g)) showErr(e.message || 'Asset search failed.', 'Try a numeric asset ID, or use the Random button to explore.');
+      }
+      return;
+    }
+    reset();
+    const g = newGeneration();
+    try { await showAsset(Number(q), null, g); } catch (e) { if (alive(g)) showErr(e.message || 'Asset lookup failed.', 'Check the ID, or try another proxy host in settings.'); }
+    if (!skipHash) setHash('asset', q);
+    return;
+  }
+  if (!q) { document.getElementById('q').focus(); return; }
+  reset();
+  const g = newGeneration();
+  try {
+    if (type === 'user') await user(q, g);
+    else if (type === 'group') await group(q, g);
+    else await game(q, g);
+    if (!skipHash) setHash(type, state.id || q);
+  } catch (e) {
+    if (alive(g)) showErr(e.message || 'That lookup failed.', 'Try the numeric ID instead, or switch the proxy host in settings.');
+  }
+}
+let ignoreHash = false;
+function setHash(kind, id) {
+  ignoreHash = true;
+  location.hash = `${kind}/${id}`;
+  setTimeout(() => { ignoreHash = false; }, 60);
+}
+function fromHash() {
+  if (ignoreHash) return;
+  const m = /^#(user|group|game|asset|bulk|compare)\/([^/]+)(?:\/([a-z0-9-]+))?$/i.exec(location.hash || '');
+  if (!m) return;
+  const kind = m[1].toLowerCase();
+  document.getElementById('type').value = kind;
+  onTypeChange();
+  document.getElementById('q').value = decodeURIComponent(m[2]);
+  go(true).then(() => {
+    const tabName = m[3];
+    if (tabName) {
+      const panelId = 'p-' + tabName;
+      const btn = [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick')||'').includes(`'${panelId}'`));
+      if (document.getElementById(panelId)) tab(panelId, btn);
+    }
+  });
+}
+
+/* ============================================================
+   RANDOM
+   ============================================================ */
+function rollRandom() {
+  const t = document.getElementById('type').value;
+  if (t === 'asset') return rollAsset();
+  if (t === 'user') return rollUser();
+  if (t === 'group') return rollGroup();
+  if (t === 'bulk' || t === 'compare') return;
+  return rollGame();
+}
+
+async function rollAsset() {
+  document.getElementById('type').value = 'asset';
+  onTypeChange();
+  reset();
+  const g = newGeneration();
+  progress(10, 'Rolling random asset IDs');
+  const batches = 8, perBatch = 5;
+  for (let b = 0; b < batches; b++) {
+    if (!alive(g)) return;
+    const ids = Array.from({ length: perBatch }, randomAssetId);
+    progress(10 + b * 10, `Trying ${ids.length} IDs (round ${b + 1} of ${batches})`);
+    const results = await Promise.all(ids.map(id =>
+      get(`https://economy.${P}/v2/assets/${id}/details`).then(d => ({ id, d }))
+    ));
+    const hit = results.find(r => r.d && r.d.Name && !r.d.errors);
+    if (hit) {
+      if (!alive(g)) return;
+      document.getElementById('q').value = String(hit.id);
+      await showAsset(hit.id, hit.d, g);
+      setHash('asset', hit.id);
+      return;
+    }
+  }
+  showErr('No live asset found in 40 random IDs.', 'The ID space is sparse. Roll again; it usually lands within a try or two.');
+}
+
+async function rollUser() {
+  document.getElementById('type').value = 'user';
+  onTypeChange();
+  reset();
+  const g = newGeneration();
+  progress(10, 'Rolling random user IDs');
+  for (let b = 0; b < 8; b++) {
+    if (!alive(g)) return;
+    const ids = Array.from({ length: 5 }, () => Math.floor(Math.random() * 3.2e9) + 1);
+    progress(10 + b * 10, `Trying 5 IDs (round ${b + 1} of 8)`);
+    const res = await Promise.all(ids.map(id => get(`https://users.${P}/v1/users/${id}`).then(d => ({ id, d }))));
+    const hit = res.find(r => r.d && !r.d.errors && r.d.name);
+    if (hit) {
+      document.getElementById('q').value = String(hit.id);
+      await user(String(hit.id), g);
+      setHash('user', hit.id);
+      return;
+    }
+  }
+  showErr('No live account found in 40 random IDs.', 'Roll again. The valid ranges are patchy.');
+}
+
+async function rollGroup() {
+  document.getElementById('type').value = 'group';
+  onTypeChange();
+  reset();
+  const g = newGeneration();
+  progress(10, 'Rolling random group IDs');
+  for (let b = 0; b < 8; b++) {
+    if (!alive(g)) return;
+    const ids = Array.from({ length: 5 }, () => Math.floor(Math.random() * 3.4e7) + 1);
+    progress(10 + b * 10, `Trying 5 IDs (round ${b + 1} of 8)`);
+    const res = await Promise.all(ids.map(id => get(`https://groups.${P}/v1/groups/${id}`).then(d => ({ id, d }))));
+    const hit = res.find(r => r.d && !r.d.errors && r.d.name);
+    if (hit) {
+      document.getElementById('q').value = String(hit.id);
+      await group(String(hit.id), g);
+      setHash('group', hit.id);
+      return;
+    }
+  }
+  showErr('No live group found in 40 random IDs.', 'Roll again, or search by name instead.');
+}
+
+async function rollGame() {
+  reset();
+  const g = newGeneration();
+  progress(20, 'Picking from what is popular right now');
+  const words = ['tycoon','obby','simulator','rpg','horror','racing','tower','survival','anime','pet','clicker','escape','parkour','battle','story','city','farm','military','sports','sandbox'];
+  const kw = words[Math.floor(Math.random() * words.length)];
+  const s = await get(`https://games.${P}/v1/games/list?keyword=${encodeURIComponent(kw)}&limit=20`);
+  const list = s?.data || [];
+  if (!list.length) return showErr('Could not reach the game list.', 'Try a different proxy host in settings.');
+  const pick = list[Math.floor(Math.random() * list.length)];
+  document.getElementById('type').value = 'game'; onTypeChange();
+  document.getElementById('q').value = String(pick.universeId);
+  await game(String(pick.universeId), g);
+  setHash('game', pick.universeId);
+}
+
+/* ============================================================
+   UNIVERSE RESOLUTION
+   ============================================================ */
+async function resolveUniverse(input) {
+  const q = String(input).trim();
+  const out = { uid: null, placeId: null, how: null };
+  const [byUniverse, byPlace, byPlaceDetails] = await Promise.all([
+    get(`https://games.${P}/v1/games?universeIds=${q}`),
+    get(`https://apis.${P}/universes/v1/places/${q}/universe`),
+    get(`https://games.${P}/v1/games/multiget-place-details?placeIds=${q}`)
+  ]);
+  const uniData = byUniverse?.data?.[0];
+  const placeUni = byPlace?.universeId;
+  const detail = Array.isArray(byPlaceDetails) ? byPlaceDetails[0] : byPlaceDetails?.data?.[0];
+
+  if (detail?.universeId) { out.uid = detail.universeId; out.placeId = Number(q); out.how = 'place'; return out; }
+  if (placeUni)           { out.uid = placeUni;         out.placeId = Number(q); out.how = 'place'; return out; }
+  if (uniData?.id)        { out.uid = uniData.id;       out.placeId = uniData.rootPlaceId || null; out.how = 'universe'; return out; }
+
+  const altUni = await getWithHostFallback(`games.{P}/v1/games?universeIds=${q}`);
+  if (altUni?.data?.[0]?.id) { out.uid = altUni.data[0].id; out.placeId = altUni.data[0].rootPlaceId || null; out.how = 'universe'; return out; }
+  const altPlace = await getWithHostFallback(`apis.{P}/universes/v1/places/${q}/universe`);
+  if (altPlace?.universeId) { out.uid = altPlace.universeId; out.placeId = Number(q); out.how = 'place'; return out; }
+
+  return out;
+}
+
+/* ============================================================
+   BULK USER LOOKUP
+   ============================================================ */
+async function resolveUserId(input) {
+  const s = String(input).trim();
+  if (!s) return null;
+  if (isId(s)) return { id: Number(s) };
+  const parsed = parseInput(s);
+  if (parsed && parsed.type === 'user') return { id: Number(parsed.id) };
+  const r = await post(`https://users.${P}/v1/usernames/users`, { usernames: [s], excludeBannedUsers: false });
+  if (r?.data?.length) return { id: r.data[0].id, name: r.data[0].name };
+  const s2 = await get(`https://users.${P}/v1/users/search?keyword=${encodeURIComponent(s)}&limit=1`);
+  if (s2?.data?.length) return { id: s2.data[0].id, name: s2.data[0].name };
+  return null;
+}
+async function runBulk(q) {
+  const parts = splitIds(q).slice(0, 100);
+  if (!parts.length) return showErr('Nothing to look up.', 'Paste usernames or IDs separated by commas, spaces or newlines.');
+  reset();
+  const g = newGeneration();
+  progress(5, `Resolving ${parts.length} user${parts.length===1?'':'s'}`);
+  const rows = [];
+  const CONCUR = 6;
+  for (let i = 0; i < parts.length; i += CONCUR) {
+    if (!alive(g)) return;
+    const batch = parts.slice(i, i + CONCUR);
+    const results = await Promise.all(batch.map(async input => {
+      const r = await resolveUserId(input);
+      if (!r) return { input, error: 'Not found' };
+      const info = await get(`https://users.${P}/v1/users/${r.id}`);
+      if (!info || info.errors) return { input, error: 'Not found' };
+      return { input, info };
+    }));
+    rows.push(...results);
+    progress(5 + Math.round(((i + batch.length) / parts.length) * 55), `Resolved ${rows.length} of ${parts.length}`);
+  }
+  if (!alive(g)) return;
+
+  progress(70, 'Fetching counts and thumbnails');
+  const ids = rows.filter(r => r.info).map(r => r.info.id);
+  const headshots = ids.length ? await thumbMap('headshot', ids, '60x60') : {};
+  const counts = await Promise.all(ids.map(async id => {
+    const [f, fo] = await Promise.all([
+      get(`https://friends.${P}/v1/users/${id}/friends/count`),
+      get(`https://friends.${P}/v1/users/${id}/followers/count`)
+    ]);
+    return { id, friends: f?.count || 0, followers: fo?.count || 0 };
+  }));
+  if (!alive(g)) return;
+  const countMap = Object.fromEntries(counts.map(c => [c.id, c]));
+
+  state.kind = 'bulk';
+  state.id = parts.length;
+  state.last = { rows: rows.map(r => ({ input: r.input, id: r.info?.id, name: r.info?.name, displayName: r.info?.displayName, created: r.info?.created, isBanned: r.info?.isBanned, error: r.error })) };
+
+  document.getElementById('title').textContent = `Bulk lookup: ${parts.length} users`;
+  document.getElementById('sub').textContent = `${rows.filter(r => r.info).length} found, ${rows.filter(r => !r.info).length} not found`;
+  setImg(document.getElementById('head'), '', false);
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('links').innerHTML = `
+    <button class="link" onclick="exportBulkCSV()">Export CSV</button>
+    <button class="link" onclick="exportBulkJSON()">Export JSON</button>
+    <button class="link" onclick="copyBulkMarkdown()">Copy as Markdown</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+  `;
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+
+  let html = `<div class="panel active" style="padding-top:20px">
+    <div class="box" style="overflow-x:auto">
+      <table class="bulk-table">
+        <thead><tr><th></th><th>Username</th><th>Display name</th><th>ID</th><th>Friends</th><th>Followers</th><th>Created</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.map(r => {
+            if (!r.info) return `<tr><td></td><td>${esc(r.input)}</td><td colspan="6" style="color:var(--danger)">${esc(r.error || 'Not found')}</td></tr>`;
+            const c = countMap[r.info.id] || {};
+            return `<tr>
+              <td><img src="${attr(headshots[r.info.id] || '')}" alt="" onerror="this.style.visibility='hidden'"></td>
+              <td><a class="link" style="padding:1px 8px" href="https://www.roblox.com/users/${r.info.id}/profile" target="_blank" rel="noopener">@${esc(r.info.name)}</a></td>
+              <td>${esc(r.info.displayName || '')}${r.info.hasVerifiedBadge ? ' ' + SVG.check : ''}</td>
+              <td style="font-family:'JetBrains Mono',monospace">${r.info.id}</td>
+              <td>${num(c.friends)}</td>
+              <td>${num(c.followers)}</td>
+              <td>${date(r.info.created)}</td>
+              <td>${r.info.isBanned ? '<span style="color:var(--danger)">Banned</span>' : 'OK'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">Limited to 100 users per bulk lookup.</p>
+  </div>`;
+  paint('', html);
+  addRecent('bulk', q, `${parts.length} users`);
+}
+function exportBulkCSV() {
+  if (!state.last?.rows) return;
+  const rows = [['input','id','name','displayName','created','isBanned'].join(',')].concat(
+    state.last.rows.map(r => [r.input, r.id || '', r.name || '', r.displayName || '', r.created || '', r.isBanned ? 'true' : 'false']
+      .map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
+  );
+  download('roblox-bulk.csv', rows.join('\n'), 'text/csv');
+  toast('Bulk CSV exported');
+}
+function exportBulkJSON() {
+  if (!state.last?.rows) return;
+  download('roblox-bulk.json', JSON.stringify(state.last.rows, null, 2), 'application/json');
+  toast('Bulk JSON exported');
+}
+function copyBulkMarkdown() {
+  if (!state.last?.rows) return;
+  const lines = ['| Username | ID |', '| --- | --- |'].concat(
+    state.last.rows.map(r => `| ${r.name || r.input} | ${r.id || ''} |`)
+  );
+  copy(lines.join('\n'));
+}
+
+/* ============================================================
+   COMPARE USERS
+   ============================================================ */
+async function runCompare(q) {
+  let left = '', right = '';
+  const vsMatch = q.split(/\s+vs\.?\s+/i);
+  if (vsMatch.length >= 2) { left = vsMatch[0]; right = vsMatch[1]; }
+  else {
+    const parts = splitIds(q);
+    if (parts.length >= 2) { left = parts[0]; right = parts[1]; }
+  }
+  if (!left || !right) return showErr('Need two users to compare.', 'Type "userA vs userB" or separate them with a comma.');
+  reset();
+  const g = newGeneration();
+  progress(10, 'Resolving both users');
+
+  const [rL, rR] = await Promise.all([resolveUserId(left), resolveUserId(right)]);
+  if (!rL || !rR) return showErr('Could not find one of those users.', 'Check the spelling, or try the numeric ID instead.');
+  progress(30, 'Loading profiles');
+
+  const loadSide = async (r) => {
+    const [info, hs, cnt, cols, pres] = await Promise.all([
+      get(`https://users.${P}/v1/users/${r.id}`),
+      get(`https://thumbnails.${P}/v1/users/avatar-headshot?userIds=${r.id}&size=420x420&format=Png&isCircular=false`),
+      Promise.all([
+        get(`https://friends.${P}/v1/users/${r.id}/friends/count`),
+        get(`https://friends.${P}/v1/users/${r.id}/followers/count`),
+        get(`https://friends.${P}/v1/users/${r.id}/followings/count`)
+      ]),
+      fetchAllPages(`https://inventory.${P}/v1/users/${r.id}/assets/collectibles?limit=100&sortOrder=Desc`, 6, 100),
+      post(`https://presence.${P}/v1/presence/users`, { userIds: [r.id] })
+    ]);
+    const colList = Array.isArray(cols) ? cols : (cols?.data || []);
+    let rap = 0, limCount = colList.length;
+    colList.forEach(c => { rap += Number(c.recentAveragePrice) || 0; });
+    return {
+      id: r.id, info, img: hs?.data?.[0]?.imageUrl || '',
+      friends: cnt[0]?.count || 0, followers: cnt[1]?.count || 0, following: cnt[2]?.count || 0,
+      rap, limCount,
+      created: info?.created ? new Date(info.created).getTime() : 0,
+      verified: !!info?.hasVerifiedBadge,
+      banned: !!info?.isBanned,
+      presence: pres?.userPresences?.[0] || null
+    };
+  };
+
+  const [L, R] = await Promise.all([loadSide(rL), loadSide(rR)]);
+  if (!alive(g)) return;
+  progress(85, 'Building comparison');
+
+  state.kind = 'compare';
+  state.id = `${L.id}-vs-${R.id}`;
+  state.last = { left: L, right: R };
+
+  document.getElementById('title').textContent = `${L.info?.name || '?'} vs ${R.info?.name || '?'}`;
+  document.getElementById('sub').textContent = `Comparison: ${L.id} vs ${R.id}`;
+  setImg(document.getElementById('head'), '', false);
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('links').innerHTML = `
+    <button class="link" onclick="copyCompareMarkdown()">Copy as Markdown</button>
+    <button class="link" onclick="exportCompareJSON()">Export JSON</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+    <button class="link" onclick="document.getElementById('type').value='compare';onTypeChange();document.getElementById('q').value='';document.getElementById('q').focus()">New comparison</button>
+  `;
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+
+  const cmp = (a, b, higherWins = true) => {
+    if (a === b) return '';
+    if (higherWins) return a > b ? ['win','lose'] : ['lose','win'];
+    return a < b ? ['win','lose'] : ['lose','win'];
+  };
+  const rowFor = (label, valL, valR, formatFn, higherWins = true) => {
+    const [lClass, rClass] = cmp(Number(valL), Number(valR), higherWins);
+    return `<div class="compare-row ${lClass}"><span class="v">${formatFn ? formatFn(valL) : exact(valL)}</span><span class="lbl">${esc(label)}</span><span class="v">${formatFn ? formatFn(valR) : exact(valR)}</span></div>`;
+  };
+
+  const presenceText = (p) => {
+    if (!p) return 'Unknown';
+    const t = p.userPresenceType;
+    if (t === 1) return 'Online';
+    if (t === 2) return p.lastLocation || 'In game';
+    if (t === 3) return 'In Studio';
+    return 'Offline';
+  };
+
+  let html = `<div class="panel active" style="padding-top:20px">
+    <div class="compare-grid">
+      <div class="compare-side">
+        <div class="compare-head">
+          <img class="av" src="${attr(L.img)}" alt="" onerror="this.style.visibility='hidden'">
+          <div>
+            <h4>${esc(L.info?.displayName || L.info?.name || '?')}${L.verified ? ' <span class="verified">' + SVG.check + '</span>' : ''}</h4>
+            <div class="mini-note">@${esc(L.info?.name || '?')} · ${L.id}</div>
+          </div>
+        </div>
+      </div>
+      <div class="compare-side">
+        <div class="compare-head">
+          <img class="av" src="${attr(R.img)}" alt="" onerror="this.style.visibility='hidden'">
+          <div>
+            <h4>${esc(R.info?.displayName || R.info?.name || '?')}${R.verified ? ' <span class="verified">' + SVG.check + '</span>' : ''}</h4>
+            <div class="mini-note">@${esc(R.info?.name || '?')} · ${R.id}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="box" style="margin-top:14px">
+      ${rowFor('Followers', L.followers, R.followers, num)}
+      ${rowFor('Friends', L.friends, R.friends, num)}
+      ${rowFor('Following', L.following, R.following, num)}
+      ${rowFor('Limiteds', L.limCount, R.limCount, num)}
+      ${rowFor('Estimated RAP', L.rap, R.rap, num)}
+      ${rowFor('Account age (days)', Math.round((Date.now()-L.created)/86400000), Math.round((Date.now()-R.created)/86400000), n => exact(Math.round(n)))}
+      <div class="compare-row"><span class="v">${esc(presenceText(L.presence))}</span><span class="lbl">Presence</span><span class="v">${esc(presenceText(R.presence))}</span></div>
+      <div class="compare-row"><span class="v">${L.banned ? 'Banned' : 'Active'}</span><span class="lbl">Status</span><span class="v">${R.banned ? 'Banned' : 'Active'}</span></div>
+    </div>
+  </div>`;
+  paint('', html);
+  addRecent('compare', q, `${L.info?.name || '?'} vs ${R.info?.name || '?'}`);
+}
+function copyCompareMarkdown() {
+  if (!state.last?.left) return;
+  const { left: L, right: R } = state.last;
+  const md = [
+    `## ${L.info?.name} vs ${R.info?.name}`,
+    '',
+    `| | ${L.info?.name} | ${R.info?.name} |`,
+    `| --- | --- | --- |`,
+    `| Followers | ${exact(L.followers)} | ${exact(R.followers)} |`,
+    `| Friends | ${exact(L.friends)} | ${exact(R.friends)} |`,
+    `| Following | ${exact(L.following)} | ${exact(R.following)} |`,
+    `| Limiteds | ${exact(L.limCount)} | ${exact(R.limCount)} |`,
+    `| RAP | ${exact(L.rap)} | ${exact(R.rap)} |`
+  ].join('\n');
+  copy(md);
+}
+function exportCompareJSON() {
+  if (!state.last) return;
+  download(`roblox-compare-${state.id}.json`, JSON.stringify(state.last, null, 2), 'application/json');
+  toast('Compare JSON exported');
+}
+
+/* ============================================================
+   ASSET
+   ============================================================ */
+async function showAsset(assetId, preloaded, g) {
+  g = g ?? state.gen;
+  const details = preloaded || await get(`https://economy.${P}/v2/assets/${assetId}/details`);
+  if (!details || details.errors || !details.Name) throw new Error('No asset with that ID.');
+  if (!alive(g)) return;
+  progress(45, 'Loading asset details');
+
+  const [thumb, favCount, catalog] = await Promise.all([
+    get(`https://thumbnails.${P}/v1/assets?assetIds=${assetId}&size=420x420&format=Png&isCircular=false`),
+    get(`https://catalog.${P}/v1/favorites/assets/${assetId}/count`),
+    post(`https://catalog.${P}/v1/catalog/items/details`, { items: [{ itemType: 'Asset', id: assetId }] })
+  ]);
+  if (!alive(g)) return;
+  const imgUrl = thumb?.data?.[0]?.imageUrl || '';
+  const cat = catalog?.data?.[0] || null;
+
+  state.kind = 'asset'; state.id = assetId; state.last = { id: assetId, details, catalog: cat, favorites: favCount };
+
+  document.getElementById('title').textContent = details.Name;
+  document.getElementById('sub').textContent = `Asset ${assetId} · ${ASSET_TYPES[details.AssetTypeId] || 'Type '+details.AssetTypeId}`;
+  setImg(document.getElementById('head'), imgUrl);
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('links').innerHTML = `
+    <a class="link" href="https://www.roblox.com/catalog/${assetId}/-" target="_blank" rel="noopener">Catalog</a>
+    <a class="link" href="https://www.rolimons.com/item/${assetId}" target="_blank" rel="noopener">Rolimons</a>
+    <button class="link" data-watch-type="asset" data-watch-id="${assetId}" onclick="toggleWatch('asset','${assetId}','${esc((details.Name||'').replace(/'/g,''))}','${attr(imgUrl)}')">Watch</button>
+    <button class="link" onclick="copy('${assetId}')">Copy ID</button>
+    <button class="link" onclick="shareLink()">Copy link</button>
+    <button class="link" onclick="copySummary()">Copy summary</button>
+    <button class="link" onclick="copyMarkdown()">Copy Markdown</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+    <button class="link" onclick="exportJSON()">Export JSON</button>
+    <button class="link" onclick="rollAsset()">Roll again</button>
+  `;
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+  addRecent('asset', String(assetId), details.Name);
+  syncWatchButtons();
+
+  const creator = details.Creator || {};
+  const price = details.PriceInRobux;
+  const limited = details.IsLimited || details.IsLimitedUnique;
+  const creatorHref = creator.CreatorType === 'Group'
+    ? `https://www.roblox.com/groups/${creator.CreatorTargetId}/-`
+    : `https://www.roblox.com/users/${creator.CreatorTargetId}/profile`;
+
+  const tabs = `
+    <button class="tab active" onclick="tab('p-ov',this)">Details</button>
+    <button class="tab" onclick="tab('p-rs',this)">Resale</button>
+    <button class="tab" onclick="tab('p-hs',this)">History</button>
+    <button class="tab" onclick="tab('p-ow',this)">Owners</button>
+    <button class="tab" onclick="tab('p-bn',this)">Bundles</button>
+    <button class="tab" onclick="tab('p-rw',this)">Recommended</button>
+  `;
+  const panels = `
+    <div id="p-ov" class="panel active">
+      <div class="asset-hero">
+        ${imgUrl ? `<img src="${attr(imgUrl)}" crossorigin="anonymous" alt="" data-lb="${attr(imgUrl)}" onerror="this.style.visibility='hidden'">` : ''}
+        <div style="flex:1;min-width:200px">
+          <div class="stats" style="margin-bottom:12px">
+            <div class="stat"><h3>${price != null ? 'R$ '+num(price) : (details.IsPublicDomain ? 'Free' : 'Unknown')}</h3><span>Price</span></div>
+            <div class="stat"><h3>${num(details.Sales)}</h3><span>Sales</span></div>
+            <div class="stat"><h3>${num(favCount ?? 0)}</h3><span>Favorites</span></div>
+            <div class="stat"><h3>${limited ? 'Yes' : 'No'}</h3><span>Limited</span></div>
+            <div class="stat"><h3>${details.IsForSale ? 'Yes' : 'No'}</h3><span>For sale</span></div>
+          </div>
+          <div class="box">
+            <strong>Info</strong>
+            ${details.Description ? esc(details.Description) : '<i style="opacity:.7">No description</i>'}
+            <br><br>
+            <div class="row"><span class="lbl">Asset ID</span><span class="val mono">${assetId}</span></div>
+            <div class="row"><span class="lbl">Type</span><span class="val">${esc(ASSET_TYPES[details.AssetTypeId] || details.AssetTypeId)}</span></div>
+            <div class="row"><span class="lbl">Creator</span><span class="val"><a class="link" style="padding:2px 8px" href="${attr(creatorHref)}" target="_blank" rel="noopener">${esc(creator.Name || 'Unknown')}</a> (${esc(creator.CreatorType || 'Unknown')})</span></div>
+            <div class="row"><span class="lbl">Creator ID</span><span class="val mono">${creator.Id || creator.CreatorTargetId || 'Unknown'}</span></div>
+            <div class="row"><span class="lbl">Created</span><span class="val">${date(details.Created)} · ${ago(details.Created)}</span></div>
+            <div class="row"><span class="lbl">Updated</span><span class="val">${date(details.Updated)} · ${ago(details.Updated)}</span></div>
+            <div class="row"><span class="lbl">Public domain</span><span class="val">${details.IsPublicDomain ? 'Yes' : 'No'}</span></div>
+            <div class="row"><span class="lbl">Limited unique</span><span class="val">${details.IsLimitedUnique ? 'Yes' : 'No'}</span></div>
+            <div class="row"><span class="lbl">Remaining</span><span class="val">${details.Remaining != null ? num(details.Remaining) : 'Unknown'}</span></div>
+            <div class="row"><span class="lbl">Off-sale deadline</span><span class="val">${details.OffsaleDeadline ? when(details.OffsaleDeadline) : 'None'}</span></div>
+            ${cat ? `<div class="row"><span class="lbl">Lowest resale price</span><span class="val">${cat.lowestPrice != null ? 'R$ ' + num(cat.lowestPrice) : 'None'}</span></div>` : ''}
+            ${cat?.itemRestrictions?.length ? `<div class="row"><span class="lbl">Restrictions</span><span class="val">${esc(cat.itemRestrictions.join(', '))}</span></div>` : ''}
+            ${details.AssetTypeId ? `<div class="row"><span class="lbl">Search more</span><span class="val"><button class="link" style="padding:3px 10px" onclick="document.getElementById('type').value='asset';onTypeChange();document.getElementById('q').value='${esc((details.Name||'').replace(/'/g,''))}';go()">Find similar by name</button></span></div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="p-rs" class="panel"><div class="subload">Loading resale data</div></div>
+    <div id="p-hs" class="panel"><div class="subload">Loading price history</div></div>
+    <div id="p-ow" class="panel"><div class="subload">Loading owners</div></div>
+    <div id="p-bn" class="panel"><div class="subload">Loading bundles</div></div>
+    <div id="p-rw" class="panel"><div class="subload">Loading similar items</div></div>
+  `;
+  paint(tabs, panels);
+
+  (async () => {
+    const [resale, resellers] = await Promise.all([
+      get(`https://economy.${P}/v1/assets/${assetId}/resale-data`),
+      limited ? get(`https://economy.${P}/v1/assets/${assetId}/resellers?limit=10`) : Promise.resolve(null)
+    ]);
+    if (!alive(g)) return;
+    let rsH = '';
+    if (resale && (resale.recentAveragePrice != null || resale.assetStock != null)) {
+      rsH += `<div class="stats" style="margin-bottom:12px">
+        <div class="stat"><h3>${resale.recentAveragePrice != null ? num(resale.recentAveragePrice) : 'Unknown'}</h3><span>Recent avg (RAP)</span></div>
+        <div class="stat"><h3>${resale.originalPrice != null ? num(resale.originalPrice) : 'Unknown'}</h3><span>Original price</span></div>
+        <div class="stat"><h3>${resale.assetStock != null ? num(resale.assetStock) : 'Unknown'}</h3><span>Stock</span></div>
+        <div class="stat"><h3>${resale.sales != null ? num(resale.sales) : 'Unknown'}</h3><span>Sales</span></div>
+        <div class="stat"><h3>${resale.numberRemaining != null ? num(resale.numberRemaining) : 'Unknown'}</h3><span>Remaining</span></div>
+      </div>`;
+    } else {
+      rsH += '<p class="empty">Nothing to show. This item has never been resold.</p>';
+    }
+    if (resellers?.data?.length) {
+      rsH += '<div class="box" style="margin-top:4px"><strong>Active resellers</strong>';
+      resellers.data.forEach(r => {
+        rsH += `<div class="row"><span class="lbl">${esc(r.seller?.name || 'Unknown')}${r.serialNumber!=null?' · #'+r.serialNumber:''}</span><span class="val">R$ ${num(r.price)}</span></div>`;
+      });
+      rsH += '</div>';
+    } else if (limited) {
+      rsH += '<p class="empty" style="margin-top:8px">No one is reselling this right now.</p>';
+    }
+    document.getElementById('p-rs').innerHTML = rsH;
+  })();
+
+  (async () => {
+    const resale = await get(`https://economy.${P}/v1/assets/${assetId}/resale-data`);
+    if (!alive(g)) return;
+    const pts = resale?.priceDataPoints || [];
+    const vol = resale?.volumeDataPoints || [];
+    let h = '';
+    if (pts.length > 1) {
+      h += `<div class="box" style="margin-bottom:12px"><strong>Average price over time</strong>${sparkline(pts, 'value')}</div>`;
+    }
+    if (vol.length > 1) {
+      h += `<div class="box"><strong>Sales volume over time</strong>${sparkline(vol, 'value')}</div>`;
+    }
+    if (!h) h = '<p class="empty">No trading history. Roblox only records this for limited items.</p>';
+    document.getElementById('p-hs').innerHTML = h;
+  })();
+
+  (async () => {
+    const owners = await get(`https://inventory.${P}/v2/assets/${assetId}/owners?limit=25&sortOrder=Desc`);
+    if (!alive(g)) return;
+    const data = (owners?.data || []).filter(o => o.owner);
+    let h = '<div class="grid" id="owGrid">';
+    if (data.length) {
+      const map = await thumbMap('headshot', data.map(o => o.owner.id));
+      data.forEach(o => {
+        h += tile({
+          href: `https://www.roblox.com/users/${o.owner.id}/profile`,
+          img: map[o.owner.id],
+          title: o.owner.username || o.owner.displayName || String(o.owner.id),
+          sub: o.serialNumber != null ? '#' + o.serialNumber : 'No serial',
+          sub2: o.created ? 'Owned ' + ago(o.created) : ''
+        });
+      });
+    } else h += '<p class="empty">Owner list is hidden for this item.</p>';
+    h += '</div>';
+    document.getElementById('p-ow').innerHTML = h;
+  })();
+
+  (async () => {
+    const bundles = await get(`https://catalog.${P}/v1/assets/${assetId}/bundles?limit=25`);
+    if (!alive(g)) return;
+    let bnH = '<div class="grid" id="bnGrid">';
+    if (bundles?.data?.length) {
+      bundles.data.forEach(b => {
+        bnH += tile({ href: `https://www.roblox.com/bundles/${b.id}/-`, img: b.thumbnail?.thumbnailUrl, title: b.name, sub: b.bundleType || 'Bundle' });
+      });
+    } else {
+      bnH += '<p class="empty">Not part of any bundles.</p>';
+    }
+    bnH += '</div>';
+    document.getElementById('p-bn').innerHTML = bnH;
+  })();
+
+  (async () => {
+    const rec = await get(`https://catalog.${P}/v1/recommendations/asset/${details.AssetTypeId}?contextAssetId=${assetId}&numItems=12`);
+    if (!alive(g)) return;
+    const data = rec?.data || [];
+    let h = '<div class="grid" id="rwGrid">';
+    if (data.length) {
+      const map = await thumbMap('assets', data.map(i => i.item?.assetId || i.id));
+      data.forEach(i => {
+        const id = i.item?.assetId || i.id;
+        h += tile({ href: `https://www.roblox.com/catalog/${id}/-`, img: map[id], title: i.item?.name || i.name || ('Asset ' + id), sub: i.creator?.name ? 'by ' + i.creator.name : '' });
+      });
+    } else h += '<p class="empty">No similar items suggested for this type.</p>';
+    h += '</div>';
+    document.getElementById('p-rw').innerHTML = h;
+  })();
+}
+
+/* ============================================================
+   USER
+   ============================================================ */
+async function user(query, g) {
+  g = g ?? state.gen;
+  let id;
+  if (isId(query)) {
+    id = Number(query);
+    const c = await get(`https://users.${P}/v1/users/${id}`);
+    if (!c || c.errors) throw new Error('No account with that ID.');
+  } else {
+    const r = await post(`https://users.${P}/v1/usernames/users`, { usernames:[query], excludeBannedUsers:false });
+    if (r?.data?.length) id = r.data[0].id;
+    else {
+      const s = await get(`https://users.${P}/v1/users/search?keyword=${encodeURIComponent(query)}&limit=5`);
+      if (!s?.data?.length) throw new Error(`No user called "${query}".`);
+      id = s.data[0].id;
+    }
+  }
+  if (!alive(g)) return;
+  progress(25, 'Loading profile');
+
+  const [info, head, body, pres] = await Promise.all([
+    get(`https://users.${P}/v1/users/${id}`),
+    get(`https://thumbnails.${P}/v1/users/avatar-headshot?userIds=${id}&size=420x420&format=Png&isCircular=false`),
+    get(`https://thumbnails.${P}/v1/users/avatar?userIds=${id}&size=420x420&format=Png&isCircular=false`),
+    post(`https://presence.${P}/v1/presence/users`, { userIds:[id] })
+  ]);
+  if (!info) throw new Error('That profile would not load.');
+  if (!alive(g)) return;
+
+  const ver = info.hasVerifiedBadge ? '<span class="verified" title="Verified">' + SVG.check + '</span>' : '';
+  document.getElementById('title').innerHTML = `${esc(info.displayName || info.name)} ${ver}`;
+  document.getElementById('sub').textContent = `@${info.name} · ID ${id}`;
+  const headUrl = head?.data?.[0]?.imageUrl || '';
+  setImg(document.getElementById('head'), headUrl);
+  const bodyUrl = body?.data?.[0]?.imageUrl || '';
+  if (bodyUrl) {
+    setImg(document.getElementById('body'), bodyUrl, 'block');
+  } else {
+    document.getElementById('body').style.display = 'none';
+  }
+  document.getElementById('links').innerHTML = `
+    <a class="link" href="https://www.roblox.com/users/${id}/profile" target="_blank" rel="noopener">Profile</a>
+    <a class="link" href="https://www.rolimons.com/player/${id}" target="_blank" rel="noopener">Rolimons</a>
+    <a class="link" href="https://www.roblox.com/users/${id}/inventory" target="_blank" rel="noopener">Inventory</a>
+    <button class="link" data-watch-type="user" data-watch-id="${id}" onclick="toggleWatch('user','${id}','${esc((info.displayName||info.name||'').replace(/'/g,''))}','${attr(headUrl)}')">Watch</button>
+    <button class="link" onclick="copy('${id}')">Copy ID</button>
+    <button class="link" onclick="shareLink()">Copy link</button>
+    <button class="link" onclick="copySummary()">Copy summary</button>
+    <button class="link" onclick="copyMarkdown()">Copy Markdown</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+    <button class="link" onclick="exportJSON()">Export JSON</button>
+    <button class="link" onclick="document.getElementById('type').value='compare';onTypeChange();document.getElementById('q').value='${esc(info.name)} vs ';document.getElementById('q').focus()">Compare</button>
+  `;
+
+  const pr = pres?.userPresences?.[0];
+  const wrap = document.getElementById('statusWrap');
+  const dot = document.getElementById('dot');
+  const st = document.getElementById('statusText');
+  wrap.style.display = 'block';
+  if (info.isBanned) {
+    dot.className = 'dot banned'; st.textContent = 'Banned';
+  } else if (pr) updatePresenceBadge(pr);
+  else { dot.className = 'dot offline'; st.textContent = 'Presence unavailable'; }
+
+  get(`https://premiumfeatures.${P}/v1/users/${id}/validate-membership`).then(isPremium => {
+    if (isPremium === true && alive(g)) {
+      document.getElementById('premiumBadge').innerHTML = `<span class="badge small premium"><span class="dot premium"></span>Premium</span>`;
+    }
+  });
+
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+  addRecent('user', query, info.displayName || info.name);
+  syncWatchButtons();
+  if (pr) startPresenceRefresh(id);
+
+  document.getElementById('tabs').innerHTML = '<div class="subload">Loading full lists</div>';
+  document.getElementById('panels').innerHTML = '';
+  progress(45, 'Loading games, favorites and inventory');
+
+  const [fc, flw, flg, games, favs, groups, outfits, gBadges, rBadges, past, avatar, friends, cols, socials, wearing3d] = await Promise.all([
+    get(`https://friends.${P}/v1/users/${id}/friends/count`),
+    get(`https://friends.${P}/v1/users/${id}/followers/count`),
+    get(`https://friends.${P}/v1/users/${id}/followings/count`),
+    fetchAllPages(`https://games.${P}/v2/users/${id}/games?accessFilter=2&limit=50&sortOrder=Desc`, 20, 50, n => progress(50, `Loaded ${n} creations`)),
+    fetchAllPages(`https://games.${P}/v2/users/${id}/favorite/games?limit=100&sortOrder=Desc`, 20, 100, n => progress(60, `Loaded ${n} favorites`)),
+    get(`https://groups.${P}/v1/users/${id}/groups/roles`),
+    get(`https://avatar.${P}/v1/users/${id}/outfits?itemsPerPage=50&isEditable=true`),
+    Promise.resolve([]), // game badges now load through the 'badges' pager
+    get(`https://accountinformation.${P}/v1/users/${id}/roblox-badges`),
+    get(`https://users.${P}/v1/users/${id}/username-history?limit=50&sortOrder=Desc`),
+    get(`https://avatar.${P}/v1/users/${id}/avatar`),
+    get(`https://friends.${P}/v1/users/${id}/friends`),
+    fetchAllPages(`https://inventory.${P}/v1/users/${id}/assets/collectibles?limit=100&sortOrder=Desc`, 12, 100),
+    get(`https://accountinformation.${P}/v1/users/${id}/promo-channels`),
+    get(`https://avatar.${P}/v1/users/${id}/currently-wearing`)
+  ]);
+  if (!alive(g)) return;
+  progress(80, 'Assembling the profile');
+
+  let pastList = [];
+  const raw = past?.data || past || [];
+  if (Array.isArray(raw)) pastList = raw.map(n => typeof n === 'string' ? n : (n.name || n.username || '')).filter(Boolean);
+
+  const colList = Array.isArray(cols) ? cols : (cols?.data || []);
+  let totalRap = 0, limCount = 0, avgRap = 0, topItem = null;
+  if (colList.length) {
+    limCount = colList.length;
+    colList.forEach(c => {
+      const rap = Number(c.recentAveragePrice) || 0;
+      totalRap += rap;
+      if (!topItem || rap > (Number(topItem.recentAveragePrice) || 0)) topItem = c;
+    });
+    avgRap = limCount ? Math.round(totalRap / limCount) : 0;
+  }
+
+  const gameList = games || [];
+  const totalVisits = gameList.reduce((s, x) => s + (Number(x.placeVisits) || 0), 0);
+  const badgeList = gBadges || [];
+
+  const lastOn = pr?.lastOnline || pr?.lastOnlineTime || null;
+  const joined = new Date(info.created || Date.now());
+  const age = ((Date.now() - joined.getTime()) / (365.25*24*3600*1000)).toFixed(1);
+
+  state.kind = 'user'; state.id = id;
+  state.last = {
+    info: { ...info, id },
+    counts: { friends: fc?.count, followers: flw?.count, following: flg?.count },
+    rap: { total: totalRap, average: avgRap, count: limCount },
+    creations: gameList.map(x => ({ id: x.id, name: x.name, visits: x.placeVisits })),
+    favorites: (favs || []).map(x => ({ id: x.id, name: x.name })),
+    groups: (groups?.data || []).map(x => ({ id: x.group.id, name: x.group.name, role: x.role?.name })),
+    pastUsernames: pastList
+  };
+
+  const tabs = `
+    <button class="tab active" onclick="tab('p-ov',this)">Overview</button>
+    <button class="tab" onclick="tab('p-cr',this)">Creations<span class="count">${gameList.length}</span></button>
+    <button class="tab" onclick="tab('p-fv',this)">Favorites<span class="count">${(favs||[]).length}</span></button>
+    <button class="tab" onclick="tab('p-gr',this)">Groups<span class="count">${(groups?.data||[]).length}</span></button>
+    <button class="tab" onclick="tab('p-fr',this)">Friends<span class="count">${(friends?.data||[]).length}</span></button>
+    <button class="tab" onclick="tab('p-fo',this);loadFollowers()">Followers<span class="count">${num(flw?.count)}</span></button>
+    <button class="tab" onclick="tab('p-fg',this);loadFollowing()">Following<span class="count">${num(flg?.count)}</span></button>
+    <button class="tab" onclick="tab('p-av',this)">Avatar</button>
+    <button class="tab" onclick="tab('p-we',this)">Wearing</button>
+    <button class="tab" onclick="tab('p-li',this)">Limiteds<span class="count">${limCount}</span></button>
+    <button class="tab" onclick="tab('p-bd',this);loadBadges()">Badges<span class="count" id="bdTabCount">…</span></button>
+    <button class="tab" onclick="tab('p-sc',this)">Social</button>
+  `;
+
+  let html = `
+    <div id="p-ov" class="panel active">
+      <div class="stats">
+        <div class="stat clickable" onclick="tab('p-fr',document.querySelector('.tab[onclick*=p-fr]'))"><h3>${num(fc?.count)}</h3><span>Friends</span></div>
+        <div class="stat clickable" onclick="tab('p-fo',document.querySelector('.tab[onclick*=p-fo]'));loadFollowers()"><h3>${num(flw?.count)}</h3><span>Followers</span></div>
+        <div class="stat clickable" onclick="tab('p-fg',document.querySelector('.tab[onclick*=p-fg]'));loadFollowing()"><h3>${num(flg?.count)}</h3><span>Following</span></div>
+        <div class="stat"><h3>${joined.getFullYear()}</h3><span>Joined</span></div>
+        <div class="stat"><h3>${age}y</h3><span>Age</span></div>
+        <div class="stat"><h3>${info.isBanned?'Yes':'No'}</h3><span>Banned</span></div>
+        <div class="stat clickable" onclick="tab('p-li',document.querySelector('.tab[onclick*=p-li]'))"><h3>${num(totalRap)}</h3><span>Est. RAP</span></div>
+        <div class="stat"><h3>${num(avgRap)}</h3><span>Avg RAP</span></div>
+        <div class="stat clickable" onclick="tab('p-li',document.querySelector('.tab[onclick*=p-li]'))"><h3>${num(limCount)}</h3><span>Limiteds</span></div>
+        <div class="stat clickable" onclick="tab('p-cr',document.querySelector('.tab[onclick*=p-cr]'))"><h3>${num(totalVisits)}</h3><span>Visits made</span></div>
+        <div class="stat clickable" onclick="tab('p-bd',document.querySelector('.tab[onclick*=p-bd]'))"><h3 id="bdStat">…</h3><span>Game badges</span></div>
+      </div>
+      <div class="split">
+        <div class="box">
+          <strong>About</strong>
+          ${info.description ? esc(info.description) : '<i style="opacity:.7">No bio set.</i>'}
+          <br><br>
+          <div class="row"><span class="lbl">Created</span><span class="val">${date(info.created)} · ${ago(info.created)}</span></div>
+          <div class="row"><span class="lbl">User ID</span><span class="val mono">${id}</span></div>
+          <div class="row"><span class="lbl">Display name</span><span class="val">${esc(info.displayName||'None')}</span></div>
+          <div class="row"><span class="lbl">Verified</span><span class="val">${info.hasVerifiedBadge?'Yes':'No'}</span></div>
+          <div class="row"><span class="lbl">Last online</span><span class="val">${lastOn?when(lastOn):'Unknown'}</span></div>
+          <div class="row"><span class="lbl">Now playing</span><span class="val">${esc(pr?.lastLocation || 'Nothing')}</span></div>
+          <div class="row"><span class="lbl">Most valuable item</span><span class="val">${topItem ? esc(topItem.name) + ' · RAP ' + num(topItem.recentAveragePrice) : 'None'}</span></div>
+          <div class="row"><span class="lbl">Follower ratio</span><span class="val">${flw?.count != null && flg?.count != null ? (flg.count ? (flw.count / flg.count).toFixed(2) : 'Infinite') + 'x' : 'Unknown'}</span></div>
+          <div class="row"><span class="lbl">Public creations</span><span class="val">${num(gameList.length)}</span></div>
+        </div>
+        <div class="box">
+          <strong>Past usernames (${pastList.length})</strong>
+          ${pastList.length ? pastList.map(n=>`<div class="list-item">${esc(n)} <button class="link" style="padding:1px 7px;font-size:11px;float:right" onclick="copy('${esc(String(n).replace(/'/g,''))}')">copy</button></div>`).join('') : '<div class="list-item">None on record</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  let gH = '<div class="grid" id="crGrid">';
+  if (gameList.length) {
+    const map = await thumbMap('games', gameList.map(x => x.id));
+    gameList.forEach(x => {
+      const pid = x.rootPlace?.id || x.rootPlaceId || x.id;
+      gH += tile({ href: `https://www.roblox.com/games/${pid}/-`, img: map[x.id], title: x.name, sub: num(x.placeVisits) + ' visits', sub2: 'Updated ' + ago(x.updated),
+        data: { visits: x.placeVisits || 0, updated: x.updated ? new Date(x.updated).getTime() : 0 } });
+    });
+    gH += `<p class="hint">All ${gameList.length} public creations · ${num(totalVisits)} visits combined</p>`;
+  } else gH += '<p class="empty">No public experiences yet.</p>';
+  gH += '</div>';
+  html += `<div id="p-cr" class="panel">${gameList.length ? staticToolbar('crGrid','crCount',[['Most visits','visits','desc'],['Fewest visits','visits','asc'],['Recently updated','updated','desc'],['Oldest update','updated','asc'],['Name A-Z','name','asc']]) : ''}${gH}</div>`;
+
+  let fH = '<div class="grid" id="fvGrid">';
+  const favList = favs || [];
+  if (favList.length) {
+    const map = await thumbMap('games', favList.map(x => x.id));
+    favList.forEach(f => {
+      const pid = f.rootPlace?.id || f.rootPlaceId || f.id;
+      fH += tile({ href: `https://www.roblox.com/games/${pid}/-`, img: map[f.id], title: f.name, sub: 'by ' + (f.creator?.name || 'Unknown'), sub2: num(f.placeVisits) + ' visits',
+        data: { visits: f.placeVisits || 0, updated: f.updated ? new Date(f.updated).getTime() : 0 } });
+    });
+    fH += `<p class="hint">All ${favList.length} favorites returned by the API</p>`;
+  } else fH += '<p class="empty">Favorites are private, or there are none.</p>';
+  fH += '</div>';
+  html += `<div id="p-fv" class="panel">${favList.length ? staticToolbar('fvGrid','fvCount',[['Most visits','visits','desc'],['Name A-Z','name','asc']]) : ''}${fH}</div>`;
+
+  let grH = '<div class="grid" id="grGrid">';
+  if (groups?.data?.length) {
+    const sorted = [...groups.data].sort((a,b) => (b.group.memberCount||0) - (a.group.memberCount||0));
+    const map = await thumbMap('groups', sorted.map(x => x.group.id));
+    sorted.forEach(x => {
+      grH += tile({ href: `https://www.roblox.com/groups/${x.group.id}/-`, img: map[x.group.id], title: x.group.name, sub: x.role?.name || '', sub2: num(x.group.memberCount) + ' members',
+        data: { visits: x.group.memberCount || 0 } });
+    });
+  } else grH += '<p class="empty">Not in any public groups.</p>';
+  grH += '</div>';
+  html += `<div id="p-gr" class="panel">${(groups?.data?.length ? staticToolbar('grGrid','grCount',[['Name A-Z','name','asc'],['Biggest group first','visits','desc']]) : '')}${grH}</div>`;
+
+  let frH = '<div class="grid" id="frGrid">';
+  const fr = friends?.data || [];
+  if (fr.length) {
+    const map = await thumbMap('headshot', fr.map(f => f.id));
+    fr.forEach(f => {
+      frH += tile({ href: `https://www.roblox.com/users/${f.id}/profile`, img: map[f.id], title: f.name || f.displayName || f.id, sub: f.displayName || '' });
+    });
+    frH += `<p class="hint">All ${fr.length} friends returned by the API${fr.length>=200?' (Roblox caps around 200)':''}</p>`;
+  } else frH += '<p class="empty">Friends list is private, or empty.</p>';
+  frH += '</div>';
+  html += `<div id="p-fr" class="panel">${fr.length ? staticToolbar('frGrid','frCount') : ''}${frH}</div>`;
+
+  html += `<div id="p-fo" class="panel">${pagerToolbar('followers','foCount')}<div class="grid" id="foGrid"><div class="subload">Open this tab to load followers</div></div>${pagerButtons('followers','foMore')}</div>`;
+  html += `<div id="p-fg" class="panel">${pagerToolbar('following','fgCount')}<div class="grid" id="fgGrid"><div class="subload">Open this tab to load following</div></div>${pagerButtons('following','fgMore')}</div>`;
+
+  let oH = '<div class="grid" id="avGrid">';
+  if (outfits?.data?.length) {
+    const map = await thumbMap('outfits', outfits.data.map(o => o.id));
+    outfits.data.forEach(o => {
+      const src = map[o.id] || '';
+      oH += `<div class="card" style="cursor:zoom-in" data-lb="${attr(src)}" data-name="${attr(o.name)}">${imgTag(src)}<h4>${esc(o.name)}</h4></div>`;
+    });
+  } else oH += '<p class="empty">No public outfits saved.</p>';
+  oH += '</div>';
+  html += `<div id="p-av" class="panel">
+    <div class="box" style="text-align:center;margin-bottom:14px">
+      <strong>Current look</strong>
+      ${bodyUrl ? `<img src="${attr(bodyUrl)}" crossorigin="anonymous" style="max-width:240px;width:100%;border-radius:6px;background:var(--img-bg);margin-top:8px;cursor:zoom-in" alt="" data-lb="${attr(bodyUrl)}" onerror="this.style.visibility='hidden'">
+        <div class="links" style="justify-content:center">
+          <button class="link" onclick="copy('${attr(bodyUrl)}')">Copy image URL</button>
+          <a class="link" href="${attr(bodyUrl)}" download="roblox-avatar-${id}.png" target="_blank" rel="noopener">Download</a>
+        </div>` : '<p class="empty">Avatar render unavailable.</p>'}
+      <div class="row" style="margin-top:10px"><span class="lbl">Player type</span><span class="val">${esc(avatar?.playerAvatarType || 'Unknown')}</span></div>
+      <div class="row"><span class="lbl">Height / width</span><span class="val">${avatar?.scales ? avatar.scales.height + ' / ' + avatar.scales.width : 'Unknown'}</span></div>
+      <div class="row"><span class="lbl">Body colour (torso)</span><span class="val">${avatar?.bodyColors?.torsoColorId ?? 'Unknown'}</span></div>
+    </div>
+    <strong style="display:block;margin-bottom:8px;font-size:13px">Saved outfits</strong>
+    ${oH}
+  </div>`;
+
+  let wH = '<div class="grid" id="weGrid">';
+  const assets = avatar?.assets || [];
+  if (assets.length) {
+    const map = await thumbMap('assets', assets.map(a => a.id));
+    assets.forEach(a => {
+      wH += tile({ href: `https://www.roblox.com/catalog/${a.id}/-`, img: map[a.id], title: a.name, sub: a.assetType?.name || a.assetType || '' });
+    });
+    wH += `<p class="hint">${assets.length} items equipped${wearing3d?.assetIds?.length ? ` · ${wearing3d.assetIds.length} reported by the avatar API` : ''}</p>`;
+  } else wH += '<p class="empty">Could not read the equipped items. The avatar API may be rate-limited.</p>';
+  wH += '</div>';
+  html += `<div id="p-we" class="panel">${assets.length ? staticToolbar('weGrid','weCount') : ''}${wH}</div>`;
+
+  let lH = '';
+  if (colList.length) {
+    const sorted = [...colList].sort((a,b) => (Number(b.recentAveragePrice)||0) - (Number(a.recentAveragePrice)||0));
+    lH += `<div class="stats"><div class="stat"><h3>${num(totalRap)}</h3><span>Total RAP</span></div>
+      <div class="stat"><h3>${num(avgRap)}</h3><span>Average RAP</span></div>
+      <div class="stat"><h3>${num(limCount)}</h3><span>Items</span></div>
+      <div class="stat"><h3>${num(sorted[0]?.recentAveragePrice)}</h3><span>Top item RAP</span></div></div>`;
+    lH += staticToolbar('liGrid','liCount',[['Highest RAP','rap','desc'],['Lowest RAP','rap','asc'],['Name A-Z','name','asc']]);
+    lH += '<div class="grid" id="liGrid">';
+    const map = await thumbMap('assets', sorted.map(c => c.assetId));
+    sorted.forEach(c => {
+      lH += tile({
+        href: `https://www.roblox.com/catalog/${c.assetId}/-`, img: map[c.assetId], title: c.name,
+        sub: 'RAP ' + num(c.recentAveragePrice) + (c.serialNumber!=null?' · #'+c.serialNumber:''),
+        sub2: c.originalPrice != null ? 'Original R$ ' + num(c.originalPrice) : '',
+        data: { rap: Number(c.recentAveragePrice) || 0 }
+      });
+    });
+    lH += `<p class="hint">Sorted by RAP · ${limCount} collectibles</p></div>`;
+  } else lH = '<div class="grid"><p class="empty">Inventory is private, or holds no limiteds.</p></div>';
+  html += `<div id="p-li" class="panel">${lH}</div>`;
+
+  let bH = '<div class="box"><strong>Official badges</strong><div class="grid" style="margin:8px 0 16px">';
+  const rb = Array.isArray(rBadges) ? rBadges : (rBadges?.data || []);
+  if (rb.length) rb.forEach(b => { bH += `<div class="card" style="cursor:default" title="${attr(b.description||'')}">${imgTag(fixUrl(b.imageUrl), '', true)}<h4>${esc(b.name)}</h4></div>`; });
+  else bH += '<p class="empty">None earned.</p>';
+  bH += '</div><strong>Game badges</strong>' + pagerToolbar('badges','bdCount') +
+    '<div class="grid" id="bdGrid"><div class="subload">Loading game badges</div></div>' + pagerButtons('badges','bdMore') + '</div>';
+  html += `<div id="p-bd" class="panel">${bH}</div>`;
+
+  let scH = '<div class="box"><strong>Linked accounts</strong>';
+  const socialEntries = socials && typeof socials === 'object'
+    ? Object.entries(socials).filter(([k,v]) => v && k !== 'isPromoChannelsSettingEnabled')
+    : [];
+  if (socialEntries.length) {
+    socialEntries.forEach(([k,v]) => {
+      scH += `<a class="social-link" href="${attr(v)}" target="_blank" rel="noopener"><span>${esc(k)}</span><span class="tag">Open</span></a>`;
+    });
+  } else {
+    scH += '<p class="empty">No linked social accounts.</p>';
+  }
+  scH += '</div>';
+  html += `<div id="p-sc" class="panel">${scH}</div>`;
+
+  paint(tabs, html);
+
+  registerPager('followers', {
+    url: `https://friends.${P}/v1/users/${id}/followers?sortOrder=Desc`,
+    gridId: 'foGrid', btnId: 'foMore', countId: 'foCount', limit: 100,
+    emptyMsg: 'No followers, or the list is hidden.', nameOf: u => u.name || u.displayName || String(u.id),
+    render: userTiles
+  });
+  registerPager('following', {
+    url: `https://friends.${P}/v1/users/${id}/followings?sortOrder=Desc`,
+    gridId: 'fgGrid', btnId: 'fgMore', countId: 'fgCount', limit: 100,
+    emptyMsg: 'Not following anyone publicly.', nameOf: u => u.name || u.displayName || String(u.id),
+    render: userTiles
+  });
+  registerPager('badges', {
+    url: `https://badges.${P}/v1/users/${id}/badges?sortOrder=Desc`,
+    gridId: 'bdGrid', btnId: 'bdMore', countId: 'bdCount', limit: 100,
+    countEls: ['bdTabCount', 'bdStat'],
+    altUrl: `https://inventory.${P}/v2/users/${id}/inventory?assetTypes=Badge&sortOrder=Desc`,
+    normalize: it => ({ id: it.assetId ?? it.id, name: it.assetName || it.name, created: it.created || it.createdAt }),
+    emptyMsg: 'No game badges found, or this user keeps them hidden.',
+    nameOf: b => b.displayName || b.name || String(b.id),
+    render: async data => {
+      if (!data.length) return '';
+      const map = await thumbMap('badges', data.map(b => b.id));
+      const miss = data.filter(b => !map[b.id] && b.iconImageId).map(b => b.iconImageId);
+      const alt = miss.length ? await thumbMap('assets', miss) : {};
+      return data.map(b => tile({
+        href: `https://www.roblox.com/badges/${b.id}/-`,
+        img: map[b.id] || alt[b.iconImageId],
+        title: b.displayName || b.name || ('Badge ' + b.id),
+        sub: b.statistics ? num(b.statistics.awardedCount) + ' awarded' : '',
+        sub2: b.created ? 'Created ' + date(b.created) : '',
+        data: { visits: b.statistics?.awardedCount || 0 }
+      })).join('');
+    }
+  });
+  setTimeout(() => { if (alive(g)) loadBadges(); }, 1200);
+}
+function loadBadges() { if (!pagers.badges?.items.length) loadPage('badges'); }
+function loadFollowers() { if (!pagers.followers?.items.length) loadPage('followers'); }
+function loadFollowing() { if (!pagers.following?.items.length) loadPage('following'); }
+
+/* ============================================================
+   GROUP
+   ============================================================ */
+async function group(query, g) {
+  g = g ?? state.gen;
+  let gid = query;
+  if (!isId(query)) {
+    const s = await get(`https://groups.${P}/v1/groups/search?keyword=${encodeURIComponent(query)}&prioritizeExactMatch=true&limit=10`);
+    if (!s?.data?.length) throw new Error(`No group called "${query}".`);
+    gid = s.data[0].id;
+  }
+  const info = await get(`https://groups.${P}/v1/groups/${gid}`);
+  if (!info || info.errors) throw new Error('No group with that ID.');
+  if (!alive(g)) return;
+  progress(40, 'Loading group');
+
+  const [icon, roles, allies, enemies, gGames, socials, nameHistory, wall] = await Promise.all([
+    get(`https://thumbnails.${P}/v1/groups/icons?groupIds=${gid}&size=420x420&format=Png&isCircular=false`),
+    get(`https://groups.${P}/v1/groups/${gid}/roles`),
+    get(`https://groups.${P}/v1/groups/${gid}/relationships/allies?model.startRowIndex=0&model.maxRows=50`),
+    get(`https://groups.${P}/v1/groups/${gid}/relationships/enemies?model.startRowIndex=0&model.maxRows=50`),
+    fetchAllPages(`https://games.${P}/v2/groups/${gid}/games?limit=100&sortOrder=Desc`, 5),
+    get(`https://groups.${P}/v1/groups/${gid}/social-links`),
+    get(`https://groups.${P}/v1/groups/${gid}/name-history?limit=25&sortOrder=Desc`),
+    get(`https://groups.${P}/v2/groups/${gid}/wall/posts?limit=25&sortOrder=Desc`)
+  ]);
+  if (!alive(g)) return;
+
+  state.kind = 'group'; state.id = gid;
+  state.last = { info: { ...info, id: Number(gid) }, roles: roles?.roles || [], games: gGames, nameHistory: nameHistory?.data || [] };
+
+  const iconUrl = icon?.data?.[0]?.imageUrl || '';
+  document.getElementById('title').textContent = info.name;
+  document.getElementById('sub').textContent = `ID ${gid} · Owner ${info.owner?.username || 'None'}`;
+  setImg(document.getElementById('head'), iconUrl);
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('links').innerHTML = `
+    <a class="link" href="https://www.roblox.com/groups/${gid}/-" target="_blank" rel="noopener">Open group</a>
+    ${info.owner?.userId || info.owner?.id ? `<a class="link" href="https://www.roblox.com/users/${info.owner.userId || info.owner.id}/profile" target="_blank" rel="noopener">Owner profile</a>` : ''}
+    <button class="link" data-watch-type="group" data-watch-id="${gid}" onclick="toggleWatch('group','${gid}','${esc((info.name||'').replace(/'/g,''))}','${attr(iconUrl)}')">Watch</button>
+    <button class="link" onclick="copy('${gid}')">Copy ID</button>
+    <button class="link" onclick="shareLink()">Copy link</button>
+    <button class="link" onclick="copySummary()">Copy summary</button>
+    <button class="link" onclick="copyMarkdown()">Copy Markdown</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+    <button class="link" onclick="exportJSON()">Export JSON</button>
+  `;
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+  addRecent('group', query, info.name);
+  syncWatchButtons();
+
+  const roleList = roles?.roles || [];
+  const totalVisits = (gGames || []).reduce((s, x) => s + (Number(x.placeVisits) || 0), 0);
+
+  const tabs = `
+    <button class="tab active" onclick="tab('p-ov',this)">Overview</button>
+    <button class="tab" onclick="tab('p-ro',this)">Roles<span class="count">${roleList.length}</span></button>
+    <button class="tab" onclick="tab('p-mb',this);loadMembers()">Members</button>
+    <button class="tab" onclick="tab('p-gg',this)">Games<span class="count">${(gGames||[]).length}</span></button>
+    <button class="tab" onclick="tab('p-wl',this)">Wall</button>
+    <button class="tab" onclick="tab('p-al',this)">Allies</button>
+    <button class="tab" onclick="tab('p-en',this)">Enemies</button>
+    <button class="tab" onclick="tab('p-nh',this)">Name history</button>
+    <button class="tab" onclick="tab('p-sc',this)">Social</button>
+  `;
+
+  let html = `
+    <div id="p-ov" class="panel active">
+      <div class="stats">
+        <div class="stat clickable" onclick="tab('p-mb',document.querySelector('.tab[onclick*=p-mb]'));loadMembers()"><h3>${num(info.memberCount)}</h3><span>Members</span></div>
+        <div class="stat"><h3>${info.publicEntryAllowed?'Open':'Approval'}</h3><span>Joining</span></div>
+        <div class="stat"><h3>${info.shout?'Yes':'No'}</h3><span>Shout</span></div>
+        <div class="stat clickable" onclick="tab('p-ro',document.querySelector('.tab[onclick*=p-ro]'))"><h3>${roleList.length}</h3><span>Roles</span></div>
+        <div class="stat clickable" onclick="tab('p-gg',document.querySelector('.tab[onclick*=p-gg]'))"><h3>${num((gGames||[]).length)}</h3><span>Games</span></div>
+        <div class="stat"><h3>${num(totalVisits)}</h3><span>Total visits</span></div>
+        <div class="stat"><h3>${info.isLocked?'Locked':'Active'}</h3><span>Status</span></div>
+      </div>
+      ${info.shout ? `<div class="box" style="margin-bottom:12px"><strong>Shout from ${esc(info.shout.poster?.username||'Unknown')}</strong>${esc(info.shout.body)}<br><small style="color:var(--text-dim)">${date(info.shout.created)} · ${ago(info.shout.updated || info.shout.created)}</small></div>` : ''}
+      <div class="box">
+        <strong>About</strong>
+        ${info.description ? esc(info.description) : '<i style="opacity:.7">No description</i>'}
+        <br><br>
+        <div class="row"><span class="lbl">Group ID</span><span class="val mono">${gid}</span></div>
+        <div class="row"><span class="lbl">Owner</span><span class="val">${esc(info.owner?.username||'None')}${info.owner?.userId?` (${info.owner.userId})`:''}</span></div>
+        <div class="row"><span class="lbl">Created</span><span class="val">${date(info.created)}</span></div>
+        <div class="row"><span class="lbl">Verified</span><span class="val">${info.hasVerifiedBadge?'Yes':'No'}</span></div>
+        <div class="row"><span class="lbl">Members per role</span><span class="val">${roleList.length ? num(Math.round((info.memberCount||0)/roleList.length)) : 'Unknown'}</span></div>
+      </div>
+    </div>
+  `;
+
+  let ro = '<div class="grid" id="roGrid">';
+  roleList.forEach(r => {
+    const share = info.memberCount ? Math.round((r.memberCount / info.memberCount) * 100) : 0;
+    ro += `<div class="card" style="align-items:flex-start;text-align:left;cursor:default" data-name="${attr(r.name)}" data-visits="${r.memberCount||0}">
+      <h4 style="color:var(--accent)">${esc(r.name)}</h4>
+      <p>Rank ${r.rank}</p><p>${num(r.memberCount)} members · ${share}%</p>
+      <div class="bar-track" style="width:100%"><i style="width:${share}%;background:var(--accent)"></i></div>
+    </div>`;
+  });
+  if (!roleList.length) ro += '<p class="empty">Roles are not public for this group.</p>';
+  ro += '</div>';
+  html += `<div id="p-ro" class="panel">${roleList.length ? staticToolbar('roGrid','roCount',[['Name A-Z','name','asc'],['Biggest role first','visits','desc'],['Smallest role first','visits','asc']]) : ''}${ro}</div>`;
+
+  html += `<div id="p-mb" class="panel">${pagerToolbar('members','mbCount')}<div class="grid" id="mbGrid"><div class="subload">Open this tab to load members</div></div>${pagerButtons('members','mbMore')}</div>`;
+
+  let gg = '<div class="grid" id="ggGrid">';
+  if ((gGames||[]).length) {
+    const map = await thumbMap('games', gGames.map(x => x.id));
+    gGames.forEach(x => {
+      const pid = x.rootPlace?.id || x.rootPlaceId || x.id;
+      gg += tile({ href: `https://www.roblox.com/games/${pid}/-`, img: map[x.id], title: x.name, sub: num(x.placeVisits) + ' visits', sub2: 'Updated ' + ago(x.updated),
+        data: { visits: x.placeVisits || 0, updated: x.updated ? new Date(x.updated).getTime() : 0 } });
+    });
+    gg += `<p class="hint">${gGames.length} games · ${num(totalVisits)} visits combined</p>`;
+  } else gg += '<p class="empty">No public games.</p>';
+  gg += '</div>';
+  html += `<div id="p-gg" class="panel">${(gGames||[]).length ? staticToolbar('ggGrid','ggCount',[['Most visits','visits','desc'],['Recently updated','updated','desc'],['Name A-Z','name','asc']]) : ''}${gg}</div>`;
+
+  let wl = '<div class="box"><strong>Recent wall posts</strong>';
+  if (wall?.data?.length) {
+    wall.data.forEach(p => {
+      const poster = p.poster?.user?.username || p.poster?.user?.displayName || 'Deleted user';
+      wl += `<div class="row" style="flex-direction:column;align-items:flex-start;gap:3px">
+        <span class="lbl">${esc(poster)} · ${ago(p.created)}</span>
+        <span style="font-size:13px">${esc(p.body)}</span></div>`;
+    });
+  } else wl += '<p class="empty">The wall is private, empty, or requires a login to read.</p>';
+  wl += '</div>';
+  html += `<div id="p-wl" class="panel">${wl}</div>`;
+
+  async function relGrid(res) {
+    let h = '<div class="grid">';
+    if (res?.relatedGroups?.length) {
+      const map = await thumbMap('groups', res.relatedGroups.map(x => x.id));
+      res.relatedGroups.forEach(x => {
+        h += tile({ href: `https://www.roblox.com/groups/${x.id}/-`, img: map[x.id], title: x.name, sub: num(x.memberCount) + ' members' });
+      });
+    } else h += '<p class="empty">None listed.</p>';
+    return h + '</div>';
+  }
+  html += `<div id="p-al" class="panel">${await relGrid(allies)}</div>`;
+  html += `<div id="p-en" class="panel">${await relGrid(enemies)}</div>`;
+
+  let nh = '<div class="box"><strong>Previous names</strong>';
+  if (nameHistory?.data?.length) {
+    nameHistory.data.forEach(n => {
+      nh += `<div class="row"><span class="lbl">${esc(n.name)}</span><span class="val">until ${date(n.created)}</span></div>`;
+    });
+  } else nh += '<p class="empty">This group has always had the same name.</p>';
+  nh += '</div>';
+  html += `<div id="p-nh" class="panel">${nh}</div>`;
+
+  let scH = '<div class="box"><strong>Social links</strong>';
+  if (socials?.data?.length) {
+    socials.data.forEach(s => {
+      scH += `<a class="social-link" href="${attr(s.url)}" target="_blank" rel="noopener"><span>${esc(s.title||s.type)}</span><span class="tag">Open</span></a>`;
+    });
+  } else {
+    scH += '<p class="empty">No linked social accounts.</p>';
+  }
+  scH += '</div>';
+  html += `<div id="p-sc" class="panel">${scH}</div>`;
+
+  paint(tabs, html);
+
+  registerPager('members', {
+    url: `https://groups.${P}/v1/groups/${gid}/users?sortOrder=Desc`,
+    gridId: 'mbGrid', btnId: 'mbMore', countId: 'mbCount', limit: 100,
+    emptyMsg: 'Member list is hidden for this group.', nameOf: m => m.user.username || m.user.displayName || String(m.user.userId),
+    render: async data => {
+      if (!data.length) return '';
+      const map = await thumbMap('headshot', data.map(m => m.user.userId));
+      return data.map(m => tile({
+        href: `https://www.roblox.com/users/${m.user.userId}/profile`,
+        img: map[m.user.userId], title: m.user.username || m.user.displayName, sub: m.role?.name || ''
+      })).join('');
+    }
+  });
+}
+function loadMembers() { if (!pagers.members?.items.length) loadPage('members'); }
+
+/* ============================================================
+   GAME
+   ============================================================ */
+async function game(query, g) {
+  g = g ?? state.gen;
+  let uid, placeHint = null, resolvedHow = '';
+  if (isId(query)) {
+    const r = await resolveUniverse(query);
+    if (!r.uid) throw new Error('That ID is not a universe or a place.');
+    uid = r.uid; placeHint = r.placeId; resolvedHow = r.how;
+  } else {
+    const s = await get(`https://games.${P}/v1/games/list?keyword=${encodeURIComponent(query)}&limit=10`);
+    if (s?.data?.length) uid = s.data[0].universeId;
+    else {
+      const omni = await get(`https://apis.${P}/search-api/omni-search?searchQuery=${encodeURIComponent(query)}&pageType=all`);
+      const first = omni?.searchResults?.[0]?.contents?.[0];
+      if (first?.universeId) uid = first.universeId;
+      else throw new Error(`No experience called "${query}".`);
+    }
+  }
+  if (!alive(g)) return;
+  progress(35, 'Loading experience');
+
+  let [infoR, icon, passes, badges, votes, media, socials, favCount] = await Promise.all([
+    get(`https://games.${P}/v1/games?universeIds=${uid}`),
+    get(`https://thumbnails.${P}/v1/games/icons?universeIds=${uid}&size=512x512&format=Png&isCircular=false`),
+    get(`https://games.${P}/v1/games/${uid}/game-passes?limit=50`),
+    get(`https://badges.${P}/v1/universes/${uid}/badges?limit=100&sortOrder=Desc`),
+    get(`https://games.${P}/v1/games/votes?universeIds=${uid}`),
+    get(`https://games.${P}/v2/games/${uid}/media`),
+    get(`https://games.${P}/v1/games/${uid}/social-links/list`),
+    get(`https://games.${P}/v1/games/${uid}/favorites/count`)
+  ]);
+  const info = infoR?.data?.[0];
+  if (!info) throw new Error('Experience details would not load.');
+  if (!badges) badges = await getAny(`https://badges.${P}/v1/universes/${uid}/badges?limit=100&sortOrder=Desc`, { fresh: true });
+  if (!alive(g)) return;
+  progress(65, 'Loading servers and places');
+
+  const [servers, recommended, places] = await Promise.all([
+    get(`https://games.${P}/v1/games/${placeHint || info.rootPlaceId}/servers/Public?sortOrder=Desc&limit=25`),
+    get(`https://games.${P}/v1/games/recommendations/game/${uid}?maxRows=12`),
+    get(`https://develop.${P}/v1/universes/${uid}/places?limit=50&sortOrder=Asc`)
+  ]);
+  if (!alive(g)) return;
+
+  state.kind = 'game'; state.id = uid; state.placeId = placeHint || info.rootPlaceId || null;
+  state.last = { info, votes: votes?.data?.[0] || null, passes: passes?.data || [], places: places?.data || [] };
+
+  const iconUrl = icon?.data?.[0]?.imageUrl || '';
+  document.getElementById('title').textContent = info.name;
+  document.getElementById('sub').textContent =
+    `by ${info.creator?.name || 'Unknown'} · Universe ${uid}` +
+    (resolvedHow === 'place' ? ` · resolved from place ${placeHint}` : '') +
+    (state.placeId && state.placeId !== uid ? ` · start place ${info.rootPlaceId}` : '');
+  setImg(document.getElementById('head'), iconUrl);
+  document.getElementById('body').style.display = 'none';
+  document.getElementById('links').innerHTML = `
+    <a class="link" href="https://www.roblox.com/games/${placeHint || info.rootPlaceId}/-" target="_blank" rel="noopener">Play</a>
+    <a class="link" href="https://www.roblox.com/${info.creator?.type==='Group'?'groups':'users'}/${info.creator?.id}/-" target="_blank" rel="noopener">Creator</a>
+    <button class="link" data-watch-type="game" data-watch-id="${uid}" onclick="toggleWatch('game','${uid}','${esc((info.name||'').replace(/'/g,''))}','${attr(iconUrl)}')">Watch</button>
+    <button class="link" onclick="copy('${uid}')">Copy universe ID</button>
+    <button class="link" onclick="copy('${placeHint || info.rootPlaceId}')">Copy place ID</button>
+    <button class="link" onclick="shareLink()">Copy link</button>
+    <button class="link" onclick="copySummary()">Copy summary</button>
+    <button class="link" onclick="copyMarkdown()">Copy Markdown</button>
+    <button class="link" onclick="screenshot('full')">Screenshot</button>
+    <button class="link" onclick="exportJSON()">Export JSON</button>
+  `;
+  document.getElementById('statusWrap').style.display = 'none';
+  document.getElementById('banner').style.display = 'flex';
+  showOut();
+  addRecent('game', query, info.name);
+  syncWatchButtons();
+
+  const v = votes?.data?.[0];
+  const up = v?.upVotes || 0, down = v?.downVotes || 0;
+  const total = up + down;
+  const ratio = total ? ((up/total)*100).toFixed(1)+'%' : 'Unknown';
+  const pct2 = total ? (up/total)*100 : 0;
+  const engagement = info.visits && info.playing ? ((info.playing / info.visits) * 1000).toFixed(2) : 'Unknown';
+
+  const tabs = `
+    <button class="tab active" onclick="tab('p-ov',this)">Details</button>
+    <button class="tab" onclick="tab('p-md',this)">Media</button>
+    <button class="tab" onclick="tab('p-sv',this)">Servers<span class="count">${servers?.data?.length||0}</span></button>
+    <button class="tab" onclick="tab('p-pl',this)">Places<span class="count">${places?.data?.length||0}</span></button>
+    <button class="tab" onclick="tab('p-gp',this)">Passes<span class="count">${passes?.data?.length||0}</span></button>
+    <button class="tab" onclick="tab('p-bd',this)">Badges<span class="count">${badges?.data?.length||0}</span></button>
+    <button class="tab" onclick="tab('p-rc',this)">Recommended</button>
+    <button class="tab" onclick="tab('p-sc',this)">Social</button>
+  `;
+
+  let html = `
+    <div id="p-ov" class="panel active">
+      <div class="stats">
+        <div class="stat"><h3>${num(info.playing)}</h3><span>Playing</span></div>
+        <div class="stat"><h3>${num(info.visits)}</h3><span>Visits</span></div>
+        <div class="stat"><h3>${num(favCount?.favoritesCount ?? info.favoritedCount)}</h3><span>Favorites</span></div>
+        <div class="stat"><h3>${info.maxPlayers}</h3><span>Max players</span></div>
+        <div class="stat"><h3>${num(up)}</h3><span>Upvotes</span></div>
+        <div class="stat"><h3>${num(down)}</h3><span>Downvotes</span></div>
+        <div class="stat"><h3>${ratio}</h3><span>Like ratio</span></div>
+        <div class="stat"><h3>${engagement}</h3><span>Playing per 1K visits</span></div>
+      </div>
+      <div class="box" style="margin-bottom:12px">
+        <strong>Ratings</strong>
+        <div class="bar-track"><i style="width:${pct2}%;background:var(--success)"></i><i style="width:${100-pct2}%;background:var(--danger)"></i></div>
+        <div class="spark-legend"><span>${exact(up)} likes</span><span>${exact(total)} votes</span><span>${exact(down)} dislikes</span></div>
+      </div>
+      <div class="box">
+        <strong>About</strong>
+        ${info.description ? esc(info.description) : '<i style="opacity:.7">No description</i>'}
+        <br><br>
+        <div class="row"><span class="lbl">Universe ID</span><span class="val mono">${uid}</span></div>
+        <div class="row"><span class="lbl">Root place</span><span class="val mono">${info.rootPlaceId}</span></div>
+        ${state.placeId && state.placeId !== uid ? `<div class="row"><span class="lbl">Resolved from place</span><span class="val mono">${state.placeId}</span></div>` : ''}
+        <div class="row"><span class="lbl">Creator</span><span class="val">${esc(info.creator?.name||'Unknown')} (${esc(info.creator?.type||'Unknown')})</span></div>
+        <div class="row"><span class="lbl">Creator ID</span><span class="val mono">${info.creator?.id ?? 'Unknown'}</span></div>
+        <div class="row"><span class="lbl">Created</span><span class="val">${date(info.created)} · ${ago(info.created)}</span></div>
+        <div class="row"><span class="lbl">Updated</span><span class="val">${date(info.updated)} · ${ago(info.updated)}</span></div>
+        <div class="row"><span class="lbl">Genre</span><span class="val">${esc(info.genre||'Unknown')}${info.genre_l1?` · ${esc(info.genre_l1)}`:''}${info.genre_l2?` · ${esc(info.genre_l2)}`:''}</span></div>
+        <div class="row"><span class="lbl">Avatar type</span><span class="val">${esc(info.universeAvatarType||'Unknown')}</span></div>
+        <div class="row"><span class="lbl">Copying</span><span class="val">${info.copyingAllowed?'Allowed':'Not allowed'}</span></div>
+        <div class="row"><span class="lbl">VIP servers</span><span class="val">${info.createVipServersAllowed?'Allowed':'Not allowed'}</span></div>
+        <div class="row"><span class="lbl">Studio access to APIs</span><span class="val">${info.studioAccessToApisAllowed?'On':'Off'}</span></div>
+        <div class="row"><span class="lbl">Price</span><span class="val">${info.price!=null?'R$ '+info.price:'Free'}</span></div>
+        <div class="row"><span class="lbl">Servers running</span><span class="val">${servers?.data?.length ?? 'Unknown'}</span></div>
+      </div>
+    </div>
+  `;
+
+  let md = '<div class="media">';
+  if (media?.data?.length) {
+    const ids = media.data.filter(m=>m.imageId).map(m=>m.imageId);
+    if (ids.length) {
+      const map = await thumbMap('assets', ids, '768x432');
+      ids.forEach(mid => {
+        const src = map[mid];
+        if (src) md += `<img src="${attr(src)}" crossorigin="anonymous" alt="" data-lb="${attr(src)}" onerror="this.style.display='none'">`;
+      });
+    }
+  }
+  if (md === '<div class="media">') md += '<p class="empty">No screenshots or trailers uploaded.</p>';
+  md += '</div>';
+  html += `<div id="p-md" class="panel">${md}<p class="hint">Click a shot to view it full size</p></div>`;
+
+  let sv = '';
+  const svList = servers?.data || [];
+  if (svList.length) {
+    const filled = svList.reduce((s,x) => s + x.playing, 0);
+    const cap = svList.reduce((s,x) => s + x.maxPlayers, 0);
+    const avgFps = svList.filter(x=>x.fps!=null).reduce((s,x,_,a) => s + x.fps/a.length, 0);
+    sv += `<div class="stats">
+      <div class="stat"><h3>${svList.length}</h3><span>Servers listed</span></div>
+      <div class="stat"><h3>${filled}/${cap}</h3><span>Slots filled</span></div>
+      <div class="stat"><h3>${avgFps ? avgFps.toFixed(1) : 'Unknown'}</h3><span>Average FPS</span></div>
+    </div><div class="grid" id="svGrid">`;
+    svList.forEach(s => {
+      const fill = s.maxPlayers ? Math.round((s.playing / s.maxPlayers) * 100) : 0;
+      sv += `<div class="card" style="cursor:default;text-align:left;align-items:flex-start" data-name="${attr(s.id||'')}" data-visits="${s.playing||0}">
+        <h4>Players ${s.playing}/${s.maxPlayers}</h4>
+        <p>FPS ${s.fps!=null?Math.round(s.fps):'Unknown'} · Ping ${s.ping!=null?s.ping+'ms':'Unknown'}</p>
+        <div class="bar-track" style="width:100%"><i style="width:${fill}%;background:${fill>90?'var(--danger)':'var(--accent)'}"></i></div>
+        <p style="font-size:10.5px;word-break:break-all;opacity:.7">${esc((s.id||'').slice(0,18))}</p>
+      </div>`;
+    });
+    sv += '</div>';
+  } else sv = '<div class="grid"><p class="empty">No public servers are running right now.</p></div>';
+  html += `<div id="p-sv" class="panel">${sv}</div>`;
+
+  let pl = '<div class="grid" id="plGrid">';
+  if (places?.data?.length) {
+    places.data.forEach(p => {
+      pl += tile({ href: `https://www.roblox.com/games/${p.id}/-`, img: '', title: p.name, sub: 'Place ' + p.id, sub2: p.id === info.rootPlaceId ? 'Start place' : '' });
+    });
+    pl += `<p class="hint">${places.data.length} places in this universe</p>`;
+  } else pl += '<p class="empty">Place list requires developer access for this universe.</p>';
+  pl += '</div>';
+  html += `<div id="p-pl" class="panel">${pl}</div>`;
+
+  let gp = '';
+  if (passes?.data?.length) {
+    const sorted = [...passes.data].sort((a,b) => (b.price||0) - (a.price||0));
+    gp += staticToolbar('gpGrid','gpCount',[['Priciest first','visits','desc'],['Cheapest first','visits','asc'],['Name A-Z','name','asc']]);
+    gp += '<div class="grid" id="gpGrid">';
+    const passIds = sorted.map(p => p.id).filter(Boolean).slice(0, 100).join(',');
+    const passTh = passIds ? await get(`https://thumbnails.${P}/v1/game-passes?gamePassIds=${passIds}&size=150x150&format=Png&isCircular=false`) : null;
+    const passMap = {};
+    (passTh?.data || []).forEach(t => { if (t.imageUrl) passMap[t.targetId] = t.imageUrl; });
+    sorted.forEach(p => {
+      gp += `<a class="card" href="https://www.roblox.com/game-pass/${p.id}/-" target="_blank" rel="noopener" data-name="${attr(p.name)}" data-visits="${p.price||0}">${imgTag(passMap[p.id])}<h4>${esc(p.name)}</h4><p style="color:var(--success);font-weight:700;margin-top:4px">R$ ${p.price!=null?p.price:'Off sale'}</p></a>`;
+    });
+    gp += `<p class="hint">${passes.data.length} passes, priciest first</p></div>`;
+  } else gp = '<div class="grid"><p class="empty">No game passes on sale.</p></div>';
+  html += `<div id="p-gp" class="panel">${gp}</div>`;
+
+  let bd = '';
+  if (badges?.data?.length) {
+    bd += staticToolbar('bdGrid','bdCount',[['Most awarded','visits','desc'],['Name A-Z','name','asc']]);
+    bd += '<div class="grid" id="bdGrid">';
+    const map = await thumbMap('badges', badges.data.map(b => b.id));
+    badges.data.forEach(b => {
+      const win = b.statistics ? (b.statistics.winRatePercentage * 100).toFixed(1) + '% win rate' : '';
+      bd += tile({ href: `https://www.roblox.com/badges/${b.id}/-`, img: map[b.id], title: b.name, sub: b.statistics ? num(b.statistics.awardedCount) + ' awarded' : '', sub2: win,
+        data: { visits: b.statistics?.awardedCount || 0 } });
+    });
+    bd += `<p class="hint">${badges.data.length} badges</p></div>`;
+  } else bd = '<div class="grid"><p class="empty">No badges in this experience.</p></div>';
+  html += `<div id="p-bd" class="panel">${bd}</div>`;
+
+  let rcH = '<div class="grid" id="rcGrid">';
+  const recs = recommended?.data || recommended?.games || [];
+  if (recs.length) {
+    const map = await thumbMap('games', recs.map(x => x.universeId || x.id));
+    recs.forEach(x => {
+      const gUid = x.universeId || x.id;
+      const pid = x.rootPlaceId || gUid;
+      rcH += tile({ href: `https://www.roblox.com/games/${pid}/-`, img: map[gUid], title: x.name, sub: num(x.playerCount || x.playing) + ' playing', sub2: x.totalUpVotes != null ? num(x.totalUpVotes) + ' likes' : '',
+        data: { visits: x.playerCount || x.playing || 0 } });
+    });
+    rcH += `<p class="hint">${recs.length} suggestions</p>`;
+  } else rcH += '<p class="empty">Roblox has no suggestions for this experience.</p>';
+  rcH += '</div>';
+  html += `<div id="p-rc" class="panel">${recs.length ? staticToolbar('rcGrid','rcCount',[['Most players','visits','desc'],['Name A-Z','name','asc']]) : ''}${rcH}</div>`;
+
+  let scH = '<div class="box"><strong>Social links</strong>';
+  if (socials?.data?.length) {
+    socials.data.forEach(s => {
+      scH += `<a class="social-link" href="${attr(s.url)}" target="_blank" rel="noopener"><span>${esc(s.title||s.type)}</span><span class="tag">Open</span></a>`;
+    });
+  } else {
+    scH += '<p class="empty">No linked social accounts.</p>';
+  }
+  scH += '</div>';
+  html += `<div id="p-sc" class="panel">${scH}</div>`;
+
+  paint(tabs, html);
+}
+
+/* ============================================================
+   LEGAL PAGES
+   ============================================================ */
+const LEGAL = {
+  terms: {
+    title: 'Terms of Use',
+    body: `
+      <p>This tool provides read-only access to publicly available Roblox data through third-party API proxies. By using it you agree to the following terms.</p>
+      <h4>1. No affiliation</h4>
+      <p>This site is not affiliated with, endorsed by, or sponsored by Roblox Corporation. "Roblox" and related marks belong to their respective owners.</p>
+      <h4>2. Acceptable use</h4>
+      <p>You agree not to use this tool to harass other users, to scrape data at volume, to circumvent Roblox privacy settings, or to violate the Roblox Terms of Service.</p>
+      <h4>3. Rate limits and availability</h4>
+      <p>Requests are routed through public proxies that may throttle, block or fail. The tool retries and falls back automatically, but no availability guarantee is provided.</p>
+      <h4>4. No warranty</h4>
+      <p>Data is provided as is, without warranty of any kind. Counts, prices and estimates (including RAP) may be stale, incomplete or inaccurate. Do not rely on them for trading decisions.</p>
+      <h4>5. Limitation of liability</h4>
+      <p>The operators of this site are not liable for any damages arising from use of the tool.</p>
+      <h4>6. Changes</h4>
+      <p>These terms may be updated at any time. Continued use after a change constitutes acceptance.</p>
+    `
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    body: `
+      <p>This policy explains what data the site handles.</p>
+      <h4>1. Data we do not collect</h4>
+      <p>There is no account system, no analytics, no advertising, and no server-side logging of your searches. Everything runs in your browser.</p>
+      <h4>2. Data stored locally</h4>
+      <p>The following values are kept in your browser's localStorage so the tool remembers your preferences:</p>
+      <ul>
+        <li>Theme choice (dark, light or auto)</li>
+        <li>Proxy host selection</li>
+        <li>Recent searches (up to 12)</li>
+        <li>Watchlist entries (up to 40)</li>
+        <li>Interface settings such as compact grid and sticky search</li>
+      </ul>
+      <p>You can clear this at any time from Settings, then Wipe storage.</p>
+      <h4>3. Data sent to third parties</h4>
+      <p>When you run a search, your query is forwarded to a public Roblox API proxy (<code>ff-roproxy.com</code> or <code>roproxy.com</code> by default). Those proxies, and Roblox's own APIs, may log requests under their own privacy policies. We have no control over that.</p>
+      <h4>4. Cookies</h4>
+      <p>This site sets no cookies.</p>
+      <h4>5. Images</h4>
+      <p>Avatar and thumbnail images are loaded directly from Roblox's CDN. Loading them exposes your IP address to that CDN, as with any web request.</p>
+      <h4>6. Children</h4>
+      <p>The tool is not directed at children under 13. Do not use it if you are below the minimum age required by Roblox in your region.</p>
+      <h4>7. Changes</h4>
+      <p>This policy may be updated. The revision date appears at the top.</p>
+    `
+  }
+};
+function openLegal(which) {
+  const d = LEGAL[which];
+  if (!d) return;
+  document.getElementById('legalContent').innerHTML =
+    `<h3>${esc(d.title)}</h3><p class="sub">Last updated 1 October 2026</p><div class="legal-body">${d.body}</div>`;
+  document.getElementById('legalModal').classList.add('open');
+}
+function closeLegal() { document.getElementById('legalModal').classList.remove('open'); }
+
+/* ============================================================
+   KEYBOARD + BOOT
+   ============================================================ */
+function openHelp() { document.getElementById('helpModal').classList.add('open'); }
+function closeHelp() { document.getElementById('helpModal').classList.remove('open'); }
+
+document.addEventListener('keydown', e => {
+  const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName);
+  if (e.key === 'Escape') { closeLightbox(); closeSuggest(); closeHelp(); closeLegal(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    document.getElementById('q').focus();
+    document.getElementById('q').select();
+    return;
+  }
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); document.getElementById('q').focus(); document.getElementById('q').select(); }
+  if (e.key.toLowerCase() === 'r') rollRandom();
+  if (e.key.toLowerCase() === 't') cycleTheme();
+  if (e.key === '?') { openHelp(); }
+  if (['1','2','3','4','5','6'].includes(e.key)) {
+    document.getElementById('type').value = ['user','group','game','asset','bulk','compare'][Number(e.key)-1];
+    onTypeChange();
+    document.getElementById('q').focus();
+  }
+});
+window.addEventListener('hashchange', fromHash);
+window.addEventListener('scroll', () => {
+  const b = document.getElementById('topBtn');
+  if (b) b.classList.toggle('show', window.scrollY > 400);
+}, { passive: true });
+
+(function boot() {
+  const savedThemeMode = load('themeMode', null);
+  setTheme(savedThemeMode || 'dark');
+  if (window.matchMedia) {
+    try { window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (document.documentElement.dataset.themeMode === 'auto') setTheme('auto');
+    }); } catch {}
+  }
+  const savedProxy = load('proxy', null);
+  if (savedProxy) { P = savedProxy; document.getElementById('proxySel').value = savedProxy; }
+  AUTOLOAD = !!load('autoload', false);
+  const autoChk = document.getElementById('autoChk'); if (autoChk) autoChk.checked = AUTOLOAD;
+  COMPACT = !!load('compact', false);
+  const compactChk = document.getElementById('compactChk'); if (compactChk) compactChk.checked = COMPACT;
+  document.getElementById('app').classList.toggle('compact', COMPACT);
+  STICKY_SEARCH = load('stickySearch', true);
+  const stickyChk = document.getElementById('stickyChk'); if (stickyChk) stickyChk.checked = STICKY_SEARCH;
+  document.getElementById('searchBar').classList.toggle('sticky', STICKY_SEARCH);
+  PRESENCE_ON = load('presenceRefresh', true);
+  const presenceChk = document.getElementById('presenceChk'); if (presenceChk) presenceChk.checked = PRESENCE_ON;
+  requestQueue.maxConcurrent = load('concurrency', 6);
+  const concurInp = document.getElementById('concurInp'); if (concurInp) concurInp.value = requestQueue.maxConcurrent;
+  paintNetPill();
+  renderRecent();
+  renderWatchlist();
+  onTypeChange();
+  if (location.hash) fromHash();
+})();
+</script>
+</body>
+</html>
