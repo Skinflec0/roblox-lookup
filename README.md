@@ -2,10 +2,6 @@
 
 A single-page tool for looking up public Roblox users, groups, experiences (games) and catalog items by name, ID or pasted link. It also does bulk lookups, side-by-side user comparisons and random discovery. No backend, no build step, one HTML file.
 
-**Live demo:** `https://<your-username>.github.io/<repo>/`
-
-<!-- Add a screenshot: ![Screenshot](screenshot.png) -->
-
 ## Features
 
 **Six search types**
