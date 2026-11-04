@@ -103,7 +103,3 @@ Plain HTML, CSS and JavaScript. No framework, no build step. html2canvas is load
 ## Disclaimer
 
 Not affiliated with, endorsed by or sponsored by Roblox Corporation. "Roblox" is a trademark of Roblox Corporation. Use the tool only for lawful, respectful purposes and follow the [Roblox Terms of Use](https://en.help.roblox.com/hc/en-us/articles/115004647846). Do not use it to harass people.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
